@@ -189,3 +189,49 @@
 * Participants are from -Generation R Study and the Avon Longitudinal Study of Parents and Children (ALSPAC).
 * Generation R-children born from 9,778 pregnant women residing in Rotterdam, the Netherlands
 * ALSPAC-children born from 14,541 pregnant women residing in Avon, UK
+
+
+## Adaikalakoteswari et al. 2015
+
+* 10.1186/s13148-015-0046-8
+
+* Candidate study
+
+* Illumina HumanMethylation 450Beadchip
+* SPSS Statistics version 19
+
+* 1408 participants
+
+* 152 pregnant women- living in Riyadh, KSA
+* 1,256 subjects- NDNS, a publically available dataset from the UK
+
+
+## Hedman et al. 2016
+
+* 10.1186/s12920-016-0235-0
+
+* Genome-wide study 
+
+* Illumina HumanMethylation450
+* R package(minfi)
+
+* 1016 participants
+
+* All men and women at age 70 living in Uppsala in 2001
+
+
+## Tanaka et al. 2009
+
+* 10.1016/j.ajhg.2009.02.011
+
+* Genome- wide study
+
+* HapMap project
+* R packages(METAL, MERLIN)
+
+* 2930 participants
+
+* Participants are from  InCHIANTI, SardiNIA and BLSA studies.
+
+
+## 
