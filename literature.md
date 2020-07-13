@@ -234,4 +234,77 @@
 * Participants are from  InCHIANTI, SardiNIA and BLSA studies.
 
 
-## 
+## Kok et al. 2015
+
+* 10.1186/s13148-015-0154-5
+
+* Genome-wide study
+
+* Infinium HumanMethylation450 BeadChip (Illumina)
+* R statistical packages(minfi)
+
+* 87 participants
+
+* Participants with mildly elevated homocysteine levels, aged 65–75 years
+
+
+## Smith et al. 2019
+
+* 10.1080/15592294.2019.1588682
+
+* Genome-wide study
+
+* Infinium MethylationEPIC BeadChip
+* R Bioconductor packages(minfi)
+
+* 189 participants
+
+* Parkinson’s Disease patients
+
+
+## Kinishita et al. 2013
+
+* 10.4161/epi.24621
+
+* Genome-wide study 
+
+* Infinium® HumanMethylation450 BeadChips (Illumina Inc.)
+* Mann?Whitney U test
+
+* 42 participants
+
+* 42 male patients with Schizophrenia
+
+
+##  Raffield et al. 2018
+
+* 10.1038/s10038-017-0384-9
+
+* Genome-wide study
+
+* Affymetrix Genome-Wide Human SNP Array 6.0. 
+* R statistical packages(METAL)
+
+* 14,890 participants
+
+* 2,961 JHS participants between 35 and 84 years old with the exception of the family cohort, where those ≥ 21 years old were         eligible - JHS cohort
+* 6,814 men and women aged 45–84 without prevalent CVD at baseline - MESA cohort
+* 5,115 AA and EA men and women, then aged 18–30 years- CARDIA cohort
+
+
+## Mandaviya et al. 2017
+
+* 10.1371/journal.pone.0182472
+
+* Genome-wide study
+
+* HumanMethylation 450k BeadChip arrays
+* R statistic packages
+
+* 9,894 participants
+
+* 9,894 adults from 12 cohorts. 
+* Studies were population-based
+
+
+ 
