@@ -1,6 +1,6 @@
-# **Prioritised list**
 
 
+<\b>
 |   DOI                   |   Tested parameter/s                          |   Nature of participants             |   No. of cohorts         |   Data availability     |   Availability of RNA seq|
 |-------------------------|-----------------------------------------------|--------------------------------------|--------------------------|------------------------ |--------------------------|
 |
