@@ -306,5 +306,26 @@
 * 9,894 adults from 12 cohorts. 
 * Studies were population-based
 
+## Armstrong et al. 2018
+* 10.3389/fgene.2018.00358
+* multicentre, double-blind, randomized, and controlled clinical trial
+* Illumina Infinium HumanMethylation450K BeadChip microarray
+* Statistical analyses were performed using KING software
+* 180 participants 
+* 104 European descent and 76 of African descent from Vitamin Intervention for Stroke Prevention (VISP) clinical trial.
+*	NCBIgeo data availability? 
+
+## Kinoshita et al. 2013
+*	http://dx.doi.org/10.4161/epi.24621
+*	Genome-wide DNA methylation profiling study 
+*	Plasma total Hcy levels were measured by high performance liquid chromatograph.
+*	Infinium HumanMethylation450 BeadChips
+*	Statistical analysis ??
+*	42 patients 
+*	Male patients diagnosed with schizophrenia were recruited from Tokushima and Kochi University Hospitals in Japan. 
+*	NCBIgeo data availability? 
+
+
+
 
  
