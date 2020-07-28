@@ -101,19 +101,32 @@ if ( !dir.exists("GSE74548/IDAT") ) {
   dir.create("GSE74548/IDAT")
   download.file("https://www.ncbi.nlm.nih.gov/geo/download/?acc=GSE74548&format=file",
     destfile = ARRAY_DATA)
-    untar(exdir = "IDAT", tarfile = ARRAY_DATA)
+    untar(exdir = "GSE74548/IDAT", tarfile = ARRAY_DATA)
 }
 
 baseDir <- "GSE74548"
-targets <- read.metharray.sheet(baseDir)
+R.utils::gunzip("GSE74548/GPL13534_HumanMethylation450_15017482_v.1.1.csv.gz")
+targets <- read.metharray.sheet(baseDir,pattern="txt$")
+gse <- getGEO(filename="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz")
+download.file("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz",destfile = "GSE74548_series_matrix.txt.gz")
+
+gse<- getGEO(filename = "GSE74548_series_matrix.txt.gz")
+
+targets <- pData(phenoData(gse))
+targets <- targets[order(rownames(targets)),]
+mybase <- unique(gsub("_Red.idat.gz" ,"", gsub("_Grn.idat.gz", "" ,list.files("./GSE74548",pattern = "GSM",recursive = TRUE))))
+mybase <- paste("GSE74548/", mybase, sep = "")
+# sample number discrepancy. 311 IDAT FILES but GEO states 174 subjects.
+gsm <-sapply(strsplit(mybase,"_"),"[[",1)
+gsm <-gsub("GSE74548/IDAT/","",gsm)
+#only using sampels described in meta data
+targets$Basename<- mybase[which(gsm %in% rownames(targets))]
 rgSet <- read.metharray.exp(targets = targets)
 rgSet
-targets$Basename <- gsub("GSE74548/IDAT/","",targets$Basename)
+
 head(targets)
 
 ```
-
-
 
 
 
