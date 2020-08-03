@@ -127,8 +127,91 @@ rgSet
 head(targets)
 
 ```
+## Normalisation
 
+```{r,norm,fig.cap="Figure 1. Normalisation of bead-array data with SWAN."}
+mSet <- preprocessRaw(rgSet)
+mSetSw <- SWAN(mSet,verbose=FALSE)
+par(mfrow=c(1,2), cex=0.8)
+densityByProbeType(mSet[,1], main = "Raw")
+densityByProbeType(mSetSw[,1], main = "SWAN")
+```
+## Filter probes
 
+Here we are running parallel analyses, both including and excluding sex chromosomes.
 
+```{r,filterprobes}
+# include sex chromosomes
+detP <- detectionP(rgSet)
+keep <- rowSums(detP < 0.01) == ncol(rgSet)
+mSetSw <- mSetSw[keep,]
 
+# exclude SNP probes
+mSetSw <- mapToGenome(mSetSw)
+mSetSw_nosnp <- dropLociWithSnps(mSetSw)
+dim(mSetSw)
+dim(mSetSw_nosnp)
+mSetSw <- mSetSw_nosnp
 
+# exclude sex chromosomes
+keep <- !(featureNames(mSetSw) %in% ann450k$Name[ann450k$chr %in% c("chrX","chrY")])
+mSetFlt <- mSetSw[keep,]
+head(mSetFlt)
+dim(mSetFlt)
+```
+## Extracting Beta and M-values
+
+```{r,beta_m_vals}
+# include sex chromosomes
+meth <- getMeth(mSetSw)
+unmeth <- getUnmeth(mSetSw)
+Mval <- log2((meth + 100)/(unmeth + 100))
+beta <- getBeta(mSetSw)
+
+# exclude sex chromosomes
+meth <- getMeth(mSetFlt)
+unmeth <- getUnmeth(mSetFlt)
+Mval_flt <- log2((meth + 100)/(unmeth + 100))
+beta_flt <- getBeta(mSetFlt)
+```
+
+## MDS analysis
+[Multidimensional scaling(https://en.wikipedia.org/wiki/Multidimensional_scaling)  plot is a method used
+to identify the major sources of variation in a dataset. In the MDS plots below, I will be plotting the 
+first two dimensions (principal components [PCs]), with each sample label coloured either by ART 
+classification, sex, ART and sex, and then array chip and then sample plate. 
+
+We will begin with MDS analysis including the sex chromosomes and then exclude them.
+
+First, let's quantify the contribution of the major principal components. with a scree plot, we can see 
+whether most of the variation is captured in the first two PCs or whether it is spread over more PCs.
+As we can see in Figure 2, the main source of variation is what is shown in PC1, and a much lesser
+extent on the other dimensions. Interestingly, excluding sex chromosomes does not seem to change the 
+relative contributions of PCs very much.
+
+```{r,scree,fig.cap="Figure 2. Screeplot shows contribution of top principal components to the overall variation in the experiment."}
+par(mfrow=c(2,1))  
+myscree(Mval,main="incl sex chr")
+myscree(Mval_flt,main="excl sex chr")
+```
+Here is the MDS plot by ART classification (Figure 3). You can see that there are four clusters 
+of samples when MDS is projected this way. Natural birth infants (NAT) are mostly seen in the 
+two clusters at the bottom of the chart and the IVF frozen, IVF fresh and in intrauterine 
+insemination (IUI) appear mostly as two clusters at the top of the chart. IUI seem to have a
+few samples that appear as intermediate between the upper and lower clusters.
+
+When excluding sex chromosomes, the samples tend to form two clusters with the NAT samples on
+the left of the chart and others on the right of the chart. IUI and FH have some samples which
+have intermediate methylation, which points to a slight effect of freezing.
+
+```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by ART classification."}
+targets$sex <- factor(sapply(strsplit(targets$Sample_Group,"_"),"[[",2))
+targets$art <- factor(sapply(strsplit(targets$Sample_Group,"_"),"[[",1))
+sample_groups <- factor(targets$art)
+colour_palette=brewer.pal(n = length(levels(sample_groups)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$art))]
+plot(1,axes = FALSE,xlab="",ylab="",main="MDS by ART type")
+legend("center",legend=levels(sample_groups),pch=16,cex=1.2,col=colour_palette)
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+```
