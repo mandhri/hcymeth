@@ -240,7 +240,29 @@ legend("center",legend=levels(targets$hcy_groups),pch=16,cex=1.2,col=colour_pale
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+```{r,hist}
+age<- targets$characteristics_ch1.5
+age
+age<-sapply(strsplit(age," "),"[[",4)
+age<-as.numeric(age)
+hist(age,breaks = 20,xlab = "hcy levels")
+age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
+table(age_groups)
+```
+```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age."}
+head(targets)
+targets$sex <- factor(targets$`gender:ch1`)
+targets$group <- factor(targets$source_name_ch1)
+targets$hcy_groups <- hcy_groups
+targets$age <- factor(age_groups)
 
+colour_palette=brewer.pal(n = length(levels(targets$age)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$age))]
+plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
+legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+```
 
 
 
