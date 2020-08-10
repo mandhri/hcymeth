@@ -204,15 +204,42 @@ When excluding sex chromosomes, the samples tend to form two clusters with the N
 the left of the chart and others on the right of the chart. IUI and FH have some samples which
 have intermediate methylation, which points to a slight effect of freezing.
 
-```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by ART classification."}
-targets$sex <- factor(sapply(strsplit(targets$Sample_Group,"_"),"[[",2))
-targets$art <- factor(sapply(strsplit(targets$Sample_Group,"_"),"[[",1))
-sample_groups <- factor(targets$art)
-colour_palette=brewer.pal(n = length(levels(sample_groups)), name = "Paired")
-colours <- colour_palette[as.integer(factor(targets$art))]
-plot(1,axes = FALSE,xlab="",ylab="",main="MDS by ART type")
-legend("center",legend=levels(sample_groups),pch=16,cex=1.2,col=colour_palette)
+# here we are classifying hcy levels as low,medium and high
+```{r,hist}
+hcy<- targets$characteristics_ch1.10
+hcy
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<-as.numeric(hcy)
+hist(hcy,breaks = 20,xlab = "hcy levels")
+hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
+table(hcy_groups)
+```
+```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups."}
+head(targets)
+targets$sex <- factor(targets$`gender:ch1`)
+targets$group <- factor(targets$source_name_ch1)
+targets$hcy_groups <- hcy_groups
+
+colour_palette=brewer.pal(n = length(levels(targets$group)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$group))]
+plot(1,axes = FALSE,xlab="",ylab="",main="treatment groups")
+legend("center",legend=levels(targets$group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
-
 ```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                                         
