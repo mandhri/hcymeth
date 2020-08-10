@@ -227,7 +227,19 @@ legend("center",legend=levels(targets$group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels."}
+head(targets)
+targets$sex <- factor(targets$`gender:ch1`)
+targets$group <- factor(targets$source_name_ch1)
+targets$hcy_groups <- hcy_groups
 
+colour_palette=brewer.pal(n = length(levels(targets$hcy_groups)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$hcy_groups))]
+plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
+legend("center",legend=levels(targets$hcy_groups),pch=16,cex=1.2,col=colour_palette)
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+```
 
 
 
