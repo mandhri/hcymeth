@@ -214,7 +214,7 @@ hist(hcy,breaks = 20,xlab = "hcy levels")
 hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
 table(hcy_groups)
 ```
-```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups."}
+```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
 targets$group <- factor(targets$source_name_ch1)
@@ -227,7 +227,7 @@ legend("center",legend=levels(targets$group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
-```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels."}
+```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
 targets$group <- factor(targets$source_name_ch1)
@@ -249,7 +249,7 @@ hist(age,breaks = 20,xlab = "hcy levels")
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
 ```
-```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age."}
+```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
 targets$group <- factor(targets$source_name_ch1)
@@ -263,10 +263,43 @@ legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
+head(targets)
+targets$sex <- factor(targets$`gender:ch1`)
+targets$group <- factor(targets$source_name_ch1)
+targets$hcy_groups <- hcy_groups
+targets$age <- factor(age_groups)
+targets$folate_levels <- factor(targets$characteristics_ch1.8)
+table(targets$folate_levels)
+
+colour_palette=brewer.pal(n = length(levels(targets$characteristics_ch1.8)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$characteristics_ch1.8))]
+plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
+legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+```
+
+```{r,dm1}
+samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
+sex <- factor(samplesheet$`gender:ch1`)
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
+mx <-Mval_flt
+name="placebo vs supplement follow-up"
+head(myann)
+
+colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
 
 
-
-
+design <- model.matrix(~ sex + groups)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    ```
 
 
 
