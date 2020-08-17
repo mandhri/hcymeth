@@ -277,14 +277,11 @@ mydist_flt <- plotMDS(mx,labels=targets$Sample_Name,col=colours,main="sex chromo
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
-targets$group <- factor(targets$source_name_ch1)
-targets$hcy_groups <- hcy_groups
-targets$age <- factor(age_groups)
 targets$folate_levels <- factor(targets$characteristics_ch1.8)
 
 colour_palette=brewer.pal(n = length(levels(targets$characteristics_ch1.8)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$characteristics_ch1.8))]
-plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
+plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
 legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(MX, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(mx, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
@@ -359,7 +356,30 @@ design <- model.matrix(~ sex + hcy)
 ```
 
 
+```{r,dm4}
+samplesheet<-targets
+sex <- factor(samplesheet$`gender:ch1`)
+hcy<- samplesheet$characteristics_ch1.10
+hcy
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<- factor(hcy)
+hcy
+mx <-Mval_flt
+name="hcy levels"
+head(myann)
 
+colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
+design <- model.matrix(~ sex + hcy)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dm)
+    head(dma)
+```
 
 
                                                          
