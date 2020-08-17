@@ -243,6 +243,7 @@ targets$group <- factor(targets$source_name_ch1)
 targets$hcy_groups <- hcy_groups
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
+
 colour_palette=brewer.pal(n = length(levels(targets$hcy_groups)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$hcy_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
@@ -307,13 +308,17 @@ design <- model.matrix(~ sex + groups)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     dma
+    head(dm)
+    head(dma)
 ```
+
+
 ```{r,dm2}
-samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
+samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
-name="placebo vs supplement follow-up"
+name="placebo vs supplement Baseline"
 head(myann)
 
 colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
@@ -325,11 +330,33 @@ design <- model.matrix(~ sex + groups)
     dm <- topTable(fit.reduced,coef=3, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
-    dma
+    head(dma)
 ```
 
+```{r,dm3}
+samplesheet<-targets
+sex <- factor(samplesheet$`gender:ch1`)
+hcy<- samplesheet$characteristics_ch1.10
+hcy
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<- factor(hcy)
+hcy
+mx <-Mval_flt
+name="hcy levels"
+head(myann)
 
-
+colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
+design <- model.matrix(~ sex + hcy)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dm)
+    head(dma)
+```
 
 
 
