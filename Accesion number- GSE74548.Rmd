@@ -190,17 +190,13 @@ extent on the other dimensions. Interestingly, excluding sex chromosomes does no
 relative contributions of PCs very much.
 
 ```{r,scree,fig.cap="Figure 2. Screeplot shows contribution of top principal components to the overall variation in the experiment."}
-
+colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
+colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
+head(Mval)
+head(Mval_flt)
 par(mfrow=c(2,1))  
 myscree(Mval,main="incl sex chr")
 myscree(Mval_flt,main="excl sex chr")
-mx <-Mval_flt
-MX <-Mval
-colnames(MX)<-sapply(strsplit(colnames(MX),"_"),"[[",1)
-colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
-myscree(Mval,main="incl sex chr")
-myscree(mx,main="excl sex chr")
-
 ```
 Here is the MDS plot by ART classification (Figure 3). You can see that there are four clusters 
 of samples when MDS is projected this way. Natural birth infants (NAT) are mostly seen in the 
@@ -224,22 +220,22 @@ table(hcy_groups)
 ```
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
-targets$sex <- factor(targets$`gender:ch1`)
 targets$group <- factor(targets$source_name_ch1)
+sample_group<-factor(targets$group)
+targets$sex <- factor(targets$`gender:ch1`)
 targets$hcy_groups <- hcy_groups
 
-colour_palette=brewer.pal(n = length(levels(targets$group)), name = "Paired")
-colours <- colour_palette[as.integer(factor(targets$group))]
+colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$source_name_ch1))]
 plot(1,axes = FALSE,xlab="",ylab="",main="treatment groups")
-legend("center",legend=levels(targets$group),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(MX, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(mx, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+legend("center",legend=levels(sample_group),pch=16,cex=1.2,col=colour_palette)
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
-targets$group <- factor(targets$source_name_ch1)
 targets$hcy_groups <- hcy_groups
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
@@ -248,9 +244,10 @@ colour_palette=brewer.pal(n = length(levels(targets$hcy_groups)), name = "Paired
 colours <- colour_palette[as.integer(factor(targets$hcy_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
 legend("center",legend=levels(targets$hcy_groups),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(MX, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(mx, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+
 ```{r,hist}
 age<- targets$characteristics_ch1.5
 age
@@ -260,6 +257,7 @@ hist(age,breaks = 20,xlab = "hcy levels")
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
 ```
+
 ```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
@@ -271,9 +269,10 @@ colour_palette=brewer.pal(n = length(levels(targets$age)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$age))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
 legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(MX, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(mx,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
@@ -283,10 +282,14 @@ colour_palette=brewer.pal(n = length(levels(targets$characteristics_ch1.8)), nam
 colours <- colour_palette[as.integer(factor(targets$characteristics_ch1.8))]
 plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
 legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(MX, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(mx, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
+# Differential analysis
+There are several differential contrasts that would be of interest to us in this study:
+
+*
 ```{r,dm1}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
@@ -295,7 +298,6 @@ mx <-Mval_flt
 name="placebo vs supplement follow-up"
 head(myann)
 
-colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
 design <- model.matrix(~ sex + groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -318,7 +320,7 @@ mx <-Mval_flt
 name="placebo vs supplement Baseline"
 head(myann)
 
-colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
+
 design <- model.matrix(~ sex + groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -332,23 +334,33 @@ design <- model.matrix(~ sex + groups)
 
 ```{r,dm3}
 samplesheet<-targets
-sex <- factor(samplesheet$`gender:ch1`)
 hcy<- samplesheet$characteristics_ch1.10
 hcy
 hcy<-sapply(strsplit(hcy," "),"[[",5)
-hcy<- factor(hcy)
+hcy<- as.numeric(hcy)
 hcy
+head(samplesheet)
+samplesheet<-samplesheet[which(!is.na(hcy)),]
+hcy<-hcy[which(!is.na(hcy))]
+hcy
+sex <- factor(samplesheet$`gender:ch1`)
+head(samplesheet)
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
+
+
 mx <-Mval_flt
 name="hcy levels"
 head(myann)
+head(mx)
 
-colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
-design <- model.matrix(~ sex + hcy)
+design <- model.matrix(~ age+ sex + hcy)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
     summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dm)
@@ -368,7 +380,6 @@ mx <-Mval_flt
 name="hcy levels"
 head(myann)
 
-colnames(mx)<-sapply(strsplit(colnames(mx),"_"),"[[",1)
 design <- model.matrix(~ sex + hcy)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
