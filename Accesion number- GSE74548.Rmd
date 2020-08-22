@@ -289,10 +289,13 @@ mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex
 # Differential analysis
 There are several differential contrasts that would be of interest to us in this study:
 
-*
+
 ```{r,dm1}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
 mx <-Mval_flt
 name="placebo vs supplement follow-up"
@@ -309,6 +312,18 @@ design <- model.matrix(~ sex + groups)
     dma
     head(dm)
     head(dma)
+    
+design <- model.matrix(~ age+ sex +groups)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=4, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dm)
+    head(dma)    
+    
 ```
 
 
@@ -332,24 +347,23 @@ design <- model.matrix(~ sex + groups)
     head(dma)
 ```
 
+
 ```{r,dm3}
 samplesheet<-targets
 hcy<- samplesheet$characteristics_ch1.10
-hcy
 hcy<-sapply(strsplit(hcy," "),"[[",5)
 hcy<- as.numeric(hcy)
-hcy
 head(samplesheet)
 samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
 hcy
+
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
+
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
-
-
 mx <-Mval_flt
 name="hcy levels"
 head(myann)
@@ -370,22 +384,39 @@ design <- model.matrix(~ age+ sex + hcy)
 
 ```{r,dm4}
 samplesheet<-targets
+folate_levels<- samplesheet$characteristics_ch1.8
+folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
+folate_levels<- as.numeric(folate_levels)
+head(samplesheet)
+
 sex <- factor(samplesheet$`gender:ch1`)
-hcy<- samplesheet$characteristics_ch1.10
-hcy
-hcy<-sapply(strsplit(hcy," "),"[[",5)
-hcy<- factor(hcy)
-hcy
+head(samplesheet)
+
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
+
 mx <-Mval_flt
-name="hcy levels"
+name="folate levels"
 head(myann)
 
-design <- model.matrix(~ sex + hcy)
+design <- model.matrix(~ sex + folate_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dma)
+
+
+design <- model.matrix(~ age+ sex + folate_levels)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dm)
