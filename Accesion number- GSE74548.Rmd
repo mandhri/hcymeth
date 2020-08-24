@@ -209,15 +209,7 @@ the left of the chart and others on the right of the chart. IUI and FH have some
 have intermediate methylation, which points to a slight effect of freezing.
 
 # here we are classifying hcy levels as low,medium and high
-```{r,hist}
-hcy<- targets$characteristics_ch1.10
-hcy
-hcy<-sapply(strsplit(hcy," "),"[[",5)
-hcy<-as.numeric(hcy)
-hist(hcy,breaks = 20,xlab = "hcy levels")
-hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
-table(hcy_groups)
-```
+
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
 targets$group <- factor(targets$source_name_ch1)
@@ -232,18 +224,26 @@ legend("center",legend=levels(sample_group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+```{r,hist}
+hcy<- targets$characteristics_ch1.10
+hcy
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<-as.numeric(hcy)
+hist(hcy,breaks = 20,xlab = "hcy levels")
+hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
+table(hcy_groups)
+```
 
 ```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels"}
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
 targets$hcy_groups <- hcy_groups
-age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
-table(age_groups)
+sample_group<-hcy_groups
 
-colour_palette=brewer.pal(n = length(levels(targets$hcy_groups)), name = "Paired")
-colours <- colour_palette[as.integer(factor(targets$hcy_groups))]
+colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
+colours <- colour_palette[as.integer(factor(hcy_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
-legend("center",legend=levels(targets$hcy_groups),pch=16,cex=1.2,col=colour_palette)
+legend("center",legend=levels(hcy_groups),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
@@ -260,18 +260,16 @@ table(age_groups)
 
 ```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age"}
 head(targets)
-targets$sex <- factor(targets$`gender:ch1`)
-targets$group <- factor(targets$source_name_ch1)
-targets$hcy_groups <- hcy_groups
 targets$age <- factor(age_groups)
-
-colour_palette=brewer.pal(n = length(levels(targets$age)), name = "Paired")
-colours <- colour_palette[as.integer(factor(targets$age))]
+sample_group <-factor(age_groups)
+colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
+colours <- colour_palette[as.integer(factor(age_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
-legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
+legend("center",legend=levels(age_groups),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+
 
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
 head(targets)
