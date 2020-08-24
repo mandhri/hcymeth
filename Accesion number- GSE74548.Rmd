@@ -285,9 +285,9 @@ targets$folate_levels <- factor(targets$characteristics_ch1.8)
 sample_group<-factor(targets$characteristics_ch1.8)
 
 colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
-colours <- colour_palette[as.integer(factor(targets$characteristics_ch1.8))]
+colours <- colour_palette[as.integer(factor(targets$folate_levels))]
 plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
-legend("center",legend=levels(targets$characteristics_ch1.8),pch=16,cex=1.2,col=colour_palette)
+legend("center",legend=levels(targets$folate_levels),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
