@@ -270,16 +270,24 @@ mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromos
 mydist_flt <- plotMDS(Mval_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
+```{r,hist}
+folate_levels<- targets$characteristics_ch1.8
+folate_levels
+folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
+folate_levels<-as.numeric(folate_levels)
+hist(folate_levels,breaks = 20,xlab = "folate levels")
+folate_levels<-cut(folate_levels,breaks = c(0,20,35,50,70,90),labels = c("lowest","low","medium","high","highest"))
+table(folate_levels)
+```
 
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
-head(targets)
-targets$sex <- factor(targets$`gender:ch1`)
 targets$folate_levels <- factor(targets$characteristics_ch1.8)
+sample_group<-factor(targets$characteristics_ch1.8)
 
-colour_palette=brewer.pal(n = length(levels(targets$characteristics_ch1.8)), name = "Paired")
+colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$characteristics_ch1.8))]
 plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
-legend("center",legend=levels(targets$age),pch=16,cex=1.2,col=colour_palette)
+legend("center",legend=levels(targets$characteristics_ch1.8),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
