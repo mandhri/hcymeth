@@ -213,7 +213,6 @@ head(targets)
 targets$group <- factor(targets$source_name_ch1)
 sample_group<-factor(targets$group)
 targets$sex <- factor(targets$`gender:ch1`)
-targets$hcy_groups <- hcy_groups
 
 colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$source_name_ch1))]
@@ -223,7 +222,7 @@ mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromos
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
-```{r,hist}
+```{r,hist1}
 hcy<- targets$characteristics_ch1.10
 hcy
 hcy<-sapply(strsplit(hcy," "),"[[",5)
@@ -247,7 +246,7 @@ mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromos
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
-```{r,hist}
+```{r,hist2}
 age<- targets$characteristics_ch1.5
 age
 age<-sapply(strsplit(age," "),"[[",4)
@@ -269,7 +268,7 @@ mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromos
 mydist_flt <- plotMDS(Mval_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
-```{r,hist}
+```{r,hist3}
 folate_levels<- targets$characteristics_ch1.8
 folate_levels
 folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
