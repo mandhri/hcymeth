@@ -106,8 +106,7 @@ if ( !dir.exists("GSE74548/IDAT") ) {
 
 baseDir <- "GSE74548"
 R.utils::gunzip("GSE74548/IDAT/GPL13534_HumanMethylation450_15017482_v.1.1.csv.gz",overwrite=TRUE, remove=FALSE)
-targets <- read.metharray.sheet(baseDir,pattern="txt$")
-gse <- getGEO(filename="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz")
+targets <- read.metharray.sheet(baseDir,pattern="csv")
 download.file("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz",destfile = "GSE74548_series_matrix.txt.gz")
 
 gse<- getGEO(filename = "GSE74548_series_matrix.txt.gz")
@@ -123,7 +122,6 @@ gsm <-gsub("GSE74548/IDAT/","",gsm)
 targets$Basename<- mybase[which(gsm %in% rownames(targets))]
 rgSet <- read.metharray.exp(targets = targets)
 rgSet
-
 head(targets)
 
 ```
@@ -224,6 +222,7 @@ legend("center",legend=levels(sample_group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+
 ```{r,hist}
 hcy<- targets$characteristics_ch1.10
 hcy
@@ -428,6 +427,7 @@ design <- model.matrix(~ age+ sex + folate_levels)
     head(dm)
     head(dma)
 ```
+
 ```{r,dm5}
 samplesheet<-targets
 vitminb12<- samplesheet$characteristics_ch1.9
