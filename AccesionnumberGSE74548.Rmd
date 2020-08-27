@@ -351,7 +351,6 @@ dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
     
     
 ```{r,dm1B}
-
 design <- model.matrix(~ age+ sex +groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -443,6 +442,7 @@ design <- model.matrix(~ age+ sex + hcy)
  dm3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
 ```
 
+
 ```{r,dm3B}
 design <- model.matrix(~ sex + hcy)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
@@ -455,6 +455,20 @@ design <- model.matrix(~ sex + hcy)
     head(dma)
  dm3b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
  dm3b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
+    ```
+
+```{r,dm3BB}
+design <- model.matrix(~ age + hcy)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dma)
+ dm3bb_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+ dm3bb_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
     ```
 
 ```{r,dm4A}
@@ -489,7 +503,6 @@ dm4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
 
 ```{r,dm4B}    
-
 design <- model.matrix(~ age+ sex + folate_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -537,7 +550,6 @@ design <- model.matrix(~ sex + vitminb12)
     ```
     
 ```{r,dm5B}
-
 design <- model.matrix(~ age+ sex + vitminb12)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -554,15 +566,16 @@ design <- model.matrix(~ age+ sex + vitminb12)
 ```
 
 ```{r,summarised dms}                                                        
-downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
-ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
+downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d,dm3bb_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
+ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u,dm3bb_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
 my_summary<-data.frame(downs,ups)
 row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
                          "placebo vs supplement follow-up(sex,age)",
-                          "placebo vs supplement Baseline(sex)",
+                         "placebo vs supplement Baseline(sex)",
                          "placebo vs supplement Baseline(sex,age)",
                          "hcy levels(sex)",
                          "hcy levels(sex,age)",
+                         "hcy levels(age,hcy)",
                          "folate levels(sex)",
                          "folate levels(sex,age)",
                          "vitb12 levels(sex)",
