@@ -242,8 +242,8 @@ colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(hcy_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
 legend("center",legend=levels(hcy_groups),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,hist2}
@@ -262,10 +262,10 @@ targets$age <- factor(age_groups)
 sample_group <-factor(age_groups)
 colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(age_groups))]
-plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
+plot(1,axes = FALSE,xlab="",ylab="",main="age")
 legend("center",legend=levels(age_groups),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(Mval_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,hist3}
@@ -276,25 +276,36 @@ folate_levels<-as.numeric(folate_levels)
 hist(folate_levels,breaks = 20,xlab = "folate levels")
 folate_levels<-cut(folate_levels,breaks = c(0,20,35,50,70,90),labels = c("lowest","low","medium","high","highest"))
 table(folate_levels)
+folate_levels
 ```
 
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
-targets$folate_levels <- factor(targets$characteristics_ch1.8)
-sample_group<-factor(targets$characteristics_ch1.8)
+targets$folate_levels <- folate_levels
+sample_group<-folate_levels
 
 colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$folate_levels))]
 plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
 legend("center",legend=levels(targets$folate_levels),pch=16,cex=1.2,col=colour_palette)
-mydist <- plotMDS(Mval, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-mydist_flt <- plotMDS(Mval_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
 
 # Differential analysis
 There are several differential contrasts that would be of interest to us in this study:
 
+* placebo(43) vs supplement(44) follow-up
 
-```{r,dm1}
+* placebo(43) vs supplement(44) Baseline
+
+* hcy levels(172)
+
+* folate levels(172)
+
+* vitb12 levels(172)
+
+
+```{r,dm1A}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
@@ -316,7 +327,13 @@ design <- model.matrix(~ sex + groups)
     dma
     head(dm)
     head(dma)
+dm1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+
+    ```
     
+```{r,dm1B}
+
 design <- model.matrix(~ age+ sex +groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -326,12 +343,15 @@ design <- model.matrix(~ age+ sex +groups)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dm)
-    head(dma)    
+    head(dma)
     
+dm1b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dm1b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+ 
 ```
 
 
-```{r,dm2}
+```{r,dm2A}
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
@@ -349,10 +369,28 @@ design <- model.matrix(~ sex + groups)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dma)
+dm2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dm2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
 
+```{r,dm2B}
+design <- model.matrix(~ age+ sex +groups)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=4, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dm)
+    head(dma)
+    
+dm2b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+ dm2b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
+ 
+    ```
 
-```{r,dm3}
+```{r,dm3A}
 samplesheet<-targets
 hcy<- samplesheet$characteristics_ch1.10
 hcy<-sapply(strsplit(hcy," "),"[[",5)
@@ -369,7 +407,7 @@ age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
 mx <-Mval_flt
-name="hcy levels"
+name="hcy levels "
 head(myann)
 head(mx)
 
@@ -383,10 +421,25 @@ design <- model.matrix(~ age+ sex + hcy)
     dma <- dma[order(dma$P.Value),]
     head(dm)
     head(dma)
+ dm3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+ dm3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
 ```
 
+```{r,dm3B}
+design <- model.matrix(~ sex + hcy)
+    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+    fit.reduced <- lmFit(mxs,design)
+    fit.reduced <- eBayes(fit.reduced)
+    summary(decideTests(fit.reduced))
+    dm <- topTable(fit.reduced,coef=3, number = Inf)
+    dma <- merge(myann,dm,by=0)
+    dma <- dma[order(dma$P.Value),]
+    head(dma)
+ dm3b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+ dm3b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
+    ```
 
-```{r,dm4}
+```{r,dm4A}
 samplesheet<-targets
 folate_levels<- samplesheet$characteristics_ch1.8
 folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
@@ -413,7 +466,11 @@ design <- model.matrix(~ sex + folate_levels)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dma)
+dm4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dm4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+```
 
+```{r,dm4B}    
 
 design <- model.matrix(~ age+ sex + folate_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
@@ -425,9 +482,11 @@ design <- model.matrix(~ age+ sex + folate_levels)
     dma <- dma[order(dma$P.Value),]
     head(dm)
     head(dma)
+    dm4b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+    dm4b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
 
-```{r,dm5}
+```{r,dm5A}
 samplesheet<-targets
 vitminb12<- samplesheet$characteristics_ch1.9
 vitminb12<-sapply(strsplit(vitminb12," "),"[[",6)
@@ -454,7 +513,13 @@ design <- model.matrix(~ sex + vitminb12)
     dma <- merge(myann,dm,by=0)
     dma <- dma[order(dma$P.Value),]
     head(dma)
+    dm5a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+    dm5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
     
+    ```
+    
+```{r,dm5B}
+
 design <- model.matrix(~ age+ sex + vitminb12)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -465,6 +530,26 @@ design <- model.matrix(~ age+ sex + vitminb12)
     dma <- dma[order(dma$P.Value),]
     head(dm)
     head(dma)
-
+    dm5b_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+    dm5b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+    
 ```
-                                                         
+
+```{r,summarised dms}                                                        
+downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
+ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
+my_summary<-data.frame(downs,ups)
+row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
+                         "placebo vs supplement follow-up(sex,age)",
+                          "placebo vs supplement Baseline(sex)",
+                         "placebo vs supplement Baseline(sex,age)",
+                         "hcy levels(sex)",
+                         "hcy levels(sex,age)",
+                         "folate levels(sex)",
+                         "folate levels(sex,age)",
+                         "vitb12 levels(sex)",
+                         "vitb12 levels(sex,age)")
+library(knitr)
+kable(my_summary)
+```
+
