@@ -176,12 +176,12 @@ beta_flt <- getBeta(mSetFlt)
 ## MDS analysis
 [Multidimensional scaling(https://en.wikipedia.org/wiki/Multidimensional_scaling)  plot is a method used
 to identify the major sources of variation in a dataset. In the MDS plots below, I will be plotting the 
-first two dimensions (principal components [PCs]), with each sample label coloured either by ART 
-classification, sex, ART and sex, and then array chip and then sample plate. 
+first two dimensions (principal components [PCs]), with each sample label coloured either by Hcy 
+classification, sample group,age, folate levels and vitb12 levels.
 
 We will begin with MDS analysis including the sex chromosomes and then exclude them.
 
-First, let's quantify the contribution of the major principal components. with a scree plot, we can see 
+First, let's quantify the contribution of the major principal components. with a scree plot, so we can see 
 whether most of the variation is captured in the first two PCs or whether it is spread over more PCs.
 As we can see in Figure 2, the main source of variation is what is shown in PC1, and a much lesser
 extent on the other dimensions. Interestingly, excluding sex chromosomes does not seem to change the 
@@ -196,17 +196,6 @@ par(mfrow=c(2,1))
 myscree(Mval,main="incl sex chr")
 myscree(Mval_flt,main="excl sex chr")
 ```
-Here is the MDS plot by ART classification (Figure 3). You can see that there are four clusters 
-of samples when MDS is projected this way. Natural birth infants (NAT) are mostly seen in the 
-two clusters at the bottom of the chart and the IVF frozen, IVF fresh and in intrauterine 
-insemination (IUI) appear mostly as two clusters at the top of the chart. IUI seem to have a
-few samples that appear as intermediate between the upper and lower clusters.
-
-When excluding sex chromosomes, the samples tend to form two clusters with the NAT samples on
-the left of the chart and others on the right of the chart. IUI and FH have some samples which
-have intermediate methylation, which points to a slight effect of freezing.
-
-# here we are classifying hcy levels as low,medium and high
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
@@ -290,6 +279,34 @@ legend("center",legend=levels(targets$folate_levels),pch=16,cex=1.2,col=colour_p
 plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
+
+```{r,hist4}
+vitb12_levels<- targets$characteristics_ch1.9
+vitb12_levels
+vitb12_levels<-sapply(strsplit(vitb12_levels," "),"[[",6)
+vitb12_levels<-as.numeric(vitb12_levels)
+hist(vitb12_levels,breaks = 20,xlab = "vitb12 levels")
+vitb12_levels<-cut(vitb12_levels,breaks = c(100,300,500,700,900,1115),labels = c("lowest","low","medium","high","highest"))
+table(vitb12_levels)
+vitb12_levels
+```
+
+```{r,mds5,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by vitaminb12 levels"}
+targets$vitb12_levels <- vitb12_levels
+sample_group<-vitb12_levels
+
+colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
+colours <- colour_palette[as.integer(factor(targets$vitb12_levels))]
+plot(1,axes = FALSE,xlab="",ylab="",main="vitb12 levels")
+legend("center",legend=levels(targets$vitb12_levels),pch=16,cex=1.2,col=colour_palette)
+plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+```
+
+
+
+
+
 
 # Differential analysis
 There are several differential contrasts that would be of interest to us in this study:
