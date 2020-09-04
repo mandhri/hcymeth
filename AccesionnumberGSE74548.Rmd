@@ -349,7 +349,6 @@ dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
     ```
     
-    
 ```{r,dm1B}
 design <- model.matrix(~ age+ sex +groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
@@ -575,7 +574,7 @@ row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
                          "placebo vs supplement Baseline(sex,age)",
                          "hcy levels(sex)",
                          "hcy levels(sex,age)",
-                         "hcy levels(age,hcy)",
+                         "hcy levels(age)",
                          "folate levels(sex)",
                          "folate levels(sex,age)",
                          "vitb12 levels(sex)",
@@ -583,4 +582,91 @@ row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
 library(knitr)
 kable(my_summary)
 ```
+## Venn diagrams of the differential methylated probes for each contrast
+
+First, we look at the similarity of dmps altered by fresh and frozen procedures. The overlap is very large. 
+This indicates a high degree of similarity between the profiles.
+
+```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex included)", fig.width = 8 ,fig.height = 8}
+v1 <- list("plb v sup fl(up)" =dm1a_u , 
+           "hcy(up)" =dm3a_d ,
+           "plb v sup fl(dwn)" =dm1a_d ,
+           "hcy(dwn)" =dm3b_d)
+head(v1)
+plot(euler(v1, shape = "ellipse"), quantities = TRUE)
+```
+```{r,venn2,fig.cap="Comparison of probes in related to placebo vs supplement in baseline(sex,age)", fig.width = 8 ,fig.height = 8}
+v2 <- list("plb v sup bsl(up)" =dm2a_u , 
+           "hcy(up)" =dm3a_d ,
+           "plb v sup bsl(dwn)" =dm2a_d ,
+           "hcy(dwn)" =dm3b_d)
+head(v2)
+plot(euler(v2, shape = "ellipse"), quantities = TRUE)
+```
+```{r,venn3,fig.cap="Comparison of probes in related to placebo vs supplement in baseline(sex,age)", fig.width = 8 ,fig.height = 8}
+v3 <- list("plb v sup bsl(up)" =dm2a_u , 
+           "hcy(up)" =dm3a_d ,
+           "plb v sup bsl(dwn)" =dm2a_d ,
+           "hcy(dwn)" =dm3b_d,
+           "plb v sup fl(up)" =dm1a_u ,
+           "plb v sup fl(dwn)" =dm1a_d)
+head(v3)
+plot(euler(v3, shape = "ellipse"), quantities = TRUE)
+```
+downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d,dm3bb_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
+ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u,dm3bb_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
+my_summary<-data.frame(downs,ups)
+row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
+                         "placebo vs supplement follow-up(sex,age)",
+                         "placebo vs supplement Baseline(sex)",
+                         "placebo vs supplement Baseline(sex,age)",
+                         "hcy levels(sex)",
+                         "hcy levels(sex,age)",
+                         "hcy levels(age,hcy)",
+                         "folate levels(sex)",
+                         "folate levels(sex,age)",
+                         "vitb12 levels(sex)",
+                         "vitb12 levels(sex,age)")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
