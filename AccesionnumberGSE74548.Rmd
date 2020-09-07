@@ -196,6 +196,45 @@ par(mfrow=c(2,1))
 myscree(Mval,main="incl sex chr")
 myscree(Mval_flt,main="excl sex chr")
 ```
+```{r,defected rows which is not identified as either male or female}
+
+GSM1922496<-which(targets$geo_accession== "GSM1922496")
+GSM1922576<-which(targets$geo_accession== "GSM1922576")
+GSM1922578<-which(targets$geo_accession== "GSM1922578")
+GSM1922618<-which(targets$geo_accession== "GSM1922618")
+GSM1922648<-which(targets$geo_accession== "GSM1922648")
+defects<-c(GSM1922496,GSM1922576,GSM1922578,GSM1922618,GSM1922648)
+defects<-data.frame(defects)
+defects
+
+which(colnames(targets)== "characteristics_ch1.4")
+
+#detecting the sex of the defected rows
+GSM1922496<-targets[3,14]
+GSM1922576<-targets[83,14]
+GSM1922578<-targets[85,14]
+GSM1922618<-targets[125,14]
+GSM1922648<-targets[155,14]
+
+defects <- c(GSM1922496,GSM1922576,GSM1922578,GSM1922618,GSM1922648)
+defects<-data.frame(defects)
+row.names(defects)<-c("GSM1922496",
+                      "GSM1922576",
+                      "GSM1922578",
+                      "GSM1922618",
+                      "GSM1922648")
+library(knitr)
+kable(defects)
+defects
+
+```
+
+```{r,updated target after eliminating defects}                                       
+targets<-targets[-c(3,83,85,125,155), ]
+str(targets)
+```
+
+
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
@@ -470,7 +509,7 @@ design <- model.matrix(~ age + hcy)
  dm3bb_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
     ```
 
-```{r,dm4A}
+```{r,dm4a}
 samplesheet<-targets
 folate_levels<- samplesheet$characteristics_ch1.8
 folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
@@ -516,7 +555,7 @@ design <- model.matrix(~ age+ sex + folate_levels)
     dm4b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
 
-```{r,dm5A}
+```{r,dm5a}
 samplesheet<-targets
 vitminb12<- samplesheet$characteristics_ch1.9
 vitminb12<-sapply(strsplit(vitminb12," "),"[[",6)
@@ -548,7 +587,7 @@ design <- model.matrix(~ sex + vitminb12)
     
     ```
     
-```{r,dm5B}
+```{r,dm5b}
 design <- model.matrix(~ age+ sex + vitminb12)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -587,7 +626,7 @@ kable(my_summary)
 First, we look at the similarity of dmps altered by fresh and frozen procedures. The overlap is very large. 
 This indicates a high degree of similarity between the profiles.
 
-```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex included)", fig.width = 8 ,fig.height = 8}
+```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex)", fig.width = 8 ,fig.height = 8}
 v1 <- list("plb v sup fl(up)" =dm1a_u , 
            "hcy(up)" =dm3a_d ,
            "plb v sup fl(dwn)" =dm1a_d ,
@@ -595,42 +634,83 @@ v1 <- list("plb v sup fl(up)" =dm1a_u ,
 head(v1)
 plot(euler(v1, shape = "ellipse"), quantities = TRUE)
 ```
-```{r,venn2,fig.cap="Comparison of probes in related to placebo vs supplement in baseline(sex,age)", fig.width = 8 ,fig.height = 8}
-v2 <- list("plb v sup bsl(up)" =dm2a_u , 
+
+```{r,venn2,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex,age)", fig.width = 8 ,fig.height = 8}
+v2 <- list("plb v sup fl(up)" =dm1b_u , 
            "hcy(up)" =dm3a_d ,
-           "plb v sup bsl(dwn)" =dm2a_d ,
+           "plb v sup fl(dwn)" =dm1b_d ,
            "hcy(dwn)" =dm3b_d)
 head(v2)
 plot(euler(v2, shape = "ellipse"), quantities = TRUE)
 ```
-```{r,venn3,fig.cap="Comparison of probes in related to placebo vs supplement in baseline(sex,age)", fig.width = 8 ,fig.height = 8}
-v3 <- list("plb v sup bsl(up)" =dm2a_u , 
-           "hcy(up)" =dm3a_d ,
-           "plb v sup bsl(dwn)" =dm2a_d ,
-           "hcy(dwn)" =dm3b_d,
-           "plb v sup fl(up)" =dm1a_u ,
-           "plb v sup fl(dwn)" =dm1a_d)
+
+
+```{r,venn3,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v3 <- list("fol(up)" =dm4b_u, 
+           "hcy(up)" =dm3a_u,
+           "fol(dwn)" =dm4b_d,
+           "hcy(dwn)" =dm3a_d)
 head(v3)
+str(v3)
 plot(euler(v3, shape = "ellipse"), quantities = TRUE)
 ```
-downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d,dm3bb_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
-ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u,dm3bb_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
-my_summary<-data.frame(downs,ups)
-row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
-                         "placebo vs supplement follow-up(sex,age)",
-                         "placebo vs supplement Baseline(sex)",
-                         "placebo vs supplement Baseline(sex,age)",
-                         "hcy levels(sex)",
-                         "hcy levels(sex,age)",
-                         "hcy levels(age,hcy)",
-                         "folate levels(sex)",
-                         "folate levels(sex,age)",
-                         "vitb12 levels(sex)",
-                         "vitb12 levels(sex,age)")
+```{r,venn4,fig.cap="Comparison of probes in related to hcy(age) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+#aqsk from dr mark as to why its not working
+v4 <- list("fol(up)" =dm4b_u, 
+           "hcy(up)" =dm3bb_u,
+           "fol(dwn)" =dm4b_d,
+           "hcy(dwn)" =dm3bb_d)
+head(v4)
+plot(euler(v4, shape = "ellipse"), quantities = FALSE)
+```
 
 
 
 
+```{r,venn5,fig.cap="Comparison of probes in related to hcy(age) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v5 <- list("plb v sup fl(up)" =dm1b_u, 
+           "fol(up)" = dm4b_u ,
+           "plb v sup fl(dwn)" =dm1b_d ,
+           "fol(dwn)" =dm4b_d)
+head(v5)
+plot(euler(v5, shape = "ellipse"), quantities = TRUE)
+```
+
+```{r,venn5,fig.cap="Comparison of probes in related to hcy vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v5 <- list("hcy(up)" =dm3a_u, 
+           "fol(up)" = dm4b_u ,
+           "hcy(dwn)" =dm3a_d ,
+           "fol(dwn)" =dm4b_d)
+head(v5)
+plot(euler(v5, shape = "ellipse"), quantities = TRUE)
+```
+```{r,venn6,fig.cap="Comparison of probes in related to hcy vs vitb12 level(sex,age)", fig.width = 8 ,fig.height = 8}
+v6 <- list("hcy(up)" =dm3a_u, 
+           "vitb12(up)" = dm5b_u ,
+           "hcy(dwn)" =dm3a_d ,
+           "vitb12(dwn)" =dm5b_d)
+head(v6)
+plot(euler(v6, shape = "ellipse"), quantities = TRUE)
+```
+## Spearman correlations of each contrast
+While the above Venn diagrams are suggestive of similarity between contrasts, the best 
+way to assess this is with correlation analysis. I have chosen Spearman as based on
+the directional p-value ranking metrics
+
+```{r,spearman, fig.width = 8 ,fig.height = 8}
+mycontrasts <- list("placebo vs supplement follow-up(sex,age)_up"=dm1a_u, "placebo vs supplement follow-up(sex,age)_dwn"=dm1a_d,"placebo vs supplement Baseline(sex,age)_dwn"=dm2a_d,"placebo vs supplement Baseline(sex,age)_up"=dm2a_u,"hcy levels(sex,age)_dwn"=dm3b_d,"hcy levels(sex,age)_up"=dm3b_u,"folate levels(sex,age)_dwn"=dm4b_d,"folate levels(sex,age)_up"=dm4b_u,"vitb12 levels(sex,age"=dm5b_d,"vitb12 levels(sex,age"=dm5b_u)
+myrnks <- lapply(X = mycontrasts, FUN = myranks)
+df <- join_all(myrnks,by="rn")
+rownames(df) <- df$rn
+df$rn=NULL
+colnames(df) <- names(mycontrasts)
+head(df)
+mycors <- cor(df,method = "spearman")
+my_palette <- colorRampPalette(c("darkred","red", "orange", "yellow","white"))(n = 25)
+heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.8,
+    col=my_palette,main="Spearman correlations")
+mycors
+```
 
 
 
