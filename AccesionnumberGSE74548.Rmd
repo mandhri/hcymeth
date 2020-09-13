@@ -372,7 +372,7 @@ There are several differential contrasts that would be of interest to us in this
 
 ```{r,dm1A}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
-sex <- factor(samplesheet$`gender:ch1`)
+sex<- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
@@ -380,8 +380,8 @@ groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, base
 mx <-Mval_flt
 name="placebo vs supplement follow-up"
 head(myann)
-
-                                                                                      
+dim(design)
+dim(mxs)                                                                                      
 head(myann)
 
 design <- model.matrix(~ sex + groups)
@@ -400,6 +400,15 @@ dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
     
 ```{r,dm1B}
+samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
+sex <- factor(samplesheet$`gender:ch1`)
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
+mx <-Mval_flt
+name="placebo vs supplement follow-up"
+head(myann)
 design <- model.matrix(~ age+ sex +groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -713,6 +722,68 @@ heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.
     col=my_palette,main="Spearman correlations")
 mycors
 ```
+## Enrichment analysis
+
+We will be using the recently published package mitch to perform enrichment analysis, using
+average promoter methylation change as an indicaator of gene activity.
+Enrichment will be tested with the mitch package.
+
+top_nat_vs_fh$dma
+top_nat_vs_fz$dm
+top_nat_vs_iui$dma
+top_fh_vs_fz$dma
+top_nat_vs_fx$dma
+top_iui_vs_fx$dma
+
+```{r,genesets, fig.width = 8 ,fig.height = 8}
+library("mitch")
+# gene sets
+download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip", 
+    destfile="ReactomePathways.gmt.zip")
+unzip("ReactomePathways.gmt.zip",overwrite = TRUE)
+genesets <- gmt_import("ReactomePathways.gmt")
+```
+One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
+
+```{r,1danalysis, fig.width = 8 ,fig.height = 8}
+top_nat_vs_fh_mitch <- run_mitch_1d(dma= top_nat_vs_fh$dma, name="top_nat_vs_fh_mitch")
+head(top_nat_vs_fh_mitch,50)
+top_nat_vs_fz_mitch <- run_mitch_1d(dma= top_nat_vs_fz$dma, name="top_nat_vs_fz_mitch")
+head(top_nat_vs_fz_mitch,50)
+top_nat_vs_iui_mitch <- run_mitch_1d(dma= top_nat_vs_iui$dma, name="top_nat_vs_iui_mitch")
+head(top_nat_vs_iui_mitch,50)
+top_fh_vs_fz_mitch <- run_mitch_1d(dma= top_fh_vs_fz$dma, name="top_fh_vs_fz_mitch")
+head(top_fh_vs_fz_mitch,50)
+top_nat_vs_fx_mitch <- run_mitch_1d(dma= top_nat_vs_fx$dma, name="top_nat_vs_fx_mitch")
+head(top_nat_vs_fx_mitch,50)
+top_iui_vs_fx_mitch <- run_mitch_1d(dma= top_iui_vs_fx$dma, name="top_iui_vs_fx_mitch")
+head(top_iui_vs_fx_mitch,50)
+```
+
+# Run multi-dimensional enrichment analysis
+
+```{r,mitch, fig.width = 8 ,fig.height = 8}
+xl <- list("nat_vs_fh"=top_nat_vs_fh$dma, "top_nat_vs_fz"=top_nat_vs_fz$dma, "top_nat_vs_iui"=top_nat_vs_iui$dma,
+           "top_fh_vs_fz"=top_fh_vs_fz$dma,"top_nat_vs_fx"=top_nat_vs_fx$dma, "top_iui_vs_fx"=top_iui_vs_fx$dma)
+xxl <- lapply(X = xl,run_mitch_rank)  
+xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
+xxll <- join_all(xxxl,by="genenames")
+rownames(xxll) <- xxll$genenames
+xxll$genenames=NULL
+colnames(xxll) <- names(xl)
+head(xxll)
+capture.output(
+        res <- mitch_calc(xxll,genesets = genesets,priority = "significance")
+        , file = "/dev/null", append = FALSE,
+        type = c("output", "message"), split = FALSE)
+head(res$enrichment_result,20)
+unlink("estill_multi_mitch.pdf")
+     capture.output(
+        mitch_plots(res,outfile="estill_multi_mitch.pdf")
+        , file = "/dev/null", append = FALSE,
+        type = c("output", "message"), split = FALSE)
+```
+
 
 
 "placebo vs supplement follow-up(sex)",1a
