@@ -4,7 +4,9 @@ author: "hcy_meth meta-analysis group"
 date: "21/07/2020"
 output:
   html_document:
-    toc: true
+    toc: yes
+  pdf_document:
+    toc: yes
 theme: cosmo
 ---
 
@@ -77,6 +79,12 @@ eventually be shoved into another Rscript or package but can stay here for now.
 
 ```{r,load_functions}
 source("https://raw.githubusercontent.com/markziemann/ART_methylation/master/meth_functions.R")
+myranks<-function(x) {
+  x$score <- sign(x$logFC)/log10(x$adj.P.Val)
+  y <- x[,"score",drop=FALSE]
+  y$rn <- x$Row.names
+  return(y)
+}
 ```
 ## Data import
 
@@ -376,31 +384,30 @@ sex<- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
+groups
 mx <-Mval_flt
 name="placebo vs supplement follow-up"
 head(myann)
-dim(design)
-dim(mxs)                                                                                      
-head(myann)
 
+head(samplesheet)
 design <- model.matrix(~ sex + groups)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma1a <- dma[order(dma$P.Value),]
-    dma1a
-    head(dm)
-    head(dma1a)
+mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=3, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma1a <- dma[order(dma$P.Value),]
+dma1a
+head(dm)
+head(dma1a)
 dm1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
     
 ```{r,dm1B}
-samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
+samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
@@ -409,8 +416,9 @@ groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, base
 mx <-Mval_flt
 name="placebo vs supplement follow-up"
 head(myann)
-design <- model.matrix(~ age+ sex +groups)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+head(samplesheet)
+design <- model.matrix(~age+ sex +groups)
+    mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
     summary(decideTests(fit.reduced))
@@ -419,7 +427,8 @@ design <- model.matrix(~ age+ sex +groups)
     dma1b <- dma[order(dma$P.Value),]
     head(dm)
     head(dma1b)
-    
+dim(mxs)
+dim(design)
 dm1b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dm1b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
@@ -432,8 +441,9 @@ groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, base
 mx <-Mval_flt
 name="placebo vs supplement Baseline"
 head(myann)
+groups
 
-
+head(samplesheet)
 design <- model.matrix(~ sex + groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -448,6 +458,13 @@ dm2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
 
 ```{r,dm2B}
+samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
+sex <- factor(samplesheet$`gender:ch1`)
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
+mx <-Mval_flt
+name="placebo vs supplement Baseline"
+head(myann)
+groups
 design <- model.matrix(~ age+ sex +groups)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -537,7 +554,7 @@ head(samplesheet)
 
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
-
+dim(sex)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
@@ -555,6 +572,8 @@ design <- model.matrix(~ sex + folate_levels)
     dma <- merge(myann,dm,by=0)
     dma4a <- dma[order(dma$P.Value),]
     head(dma4a)
+    dim(design)
+    dim(mxs)
 dm4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dm4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
@@ -709,8 +728,9 @@ the directional p-value ranking metrics
 
 ```{r,spearman, fig.width = 8 ,fig.height = 8}
 mycontrasts <- list("placebo vs supplement follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4b,"vitb12 levels(sex,age)"=dma5b)
-
-myrnks <- lapply(X = mycontrasts, FUN = myranks)
+lapply(mycontrasts, head)
+myrnks<-lapply(X = mycontrasts, FUN = myranks)
+str(myrnks)
 df <- join_all(myrnks,by="rn")
 rownames(df) <- df$rn
 df$rn=NULL
@@ -722,6 +742,12 @@ heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.
     col=my_palette,main="Spearman correlations")
 mycors
 ```
+
+
+
+
+
+
 ## Enrichment analysis
 
 We will be using the recently published package mitch to perform enrichment analysis, using
