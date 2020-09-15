@@ -387,7 +387,7 @@ age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
 groups
 mx <-Mval_flt
-name="placebo vs supplement follow-up"
+name="placebo_vs_supplement_follow-up"
 head(myann)
 
 head(samplesheet)
@@ -407,14 +407,14 @@ dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
     
 ```{r,dm1B}
-samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
+samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
 mx <-Mval_flt
-name="placebo vs supplement follow-up"
+name="placebo_vs_supplement_follow-up"
 head(myann)
 head(samplesheet)
 design <- model.matrix(~age+ sex +groups)
@@ -439,7 +439,7 @@ samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
-name="placebo vs supplement Baseline"
+name="placebo_vs_supplement_Baseline"
 head(myann)
 groups
 
@@ -460,13 +460,16 @@ dm2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```{r,dm2B}
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
-name="placebo vs supplement Baseline"
+name="placebo_vs_supplement_baseline"
 head(myann)
-groups
-design <- model.matrix(~ age+ sex +groups)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+head(samplesheet)
+design <- model.matrix(~age+ sex +groups)
+    mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
     summary(decideTests(fit.reduced))
@@ -475,11 +478,11 @@ design <- model.matrix(~ age+ sex +groups)
     dma2b <- dma[order(dma$P.Value),]
     head(dm)
     head(dma2b)
-    
-dm1b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm1b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+dim(mxs)
+dim(design)
+dm2b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dm2b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 ```
-
 
 ```{r,dm3A}
 samplesheet<-targets
@@ -498,7 +501,7 @@ age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
 mx <-Mval_flt
-name="hcy levels "
+name="hcy_levels "
 head(myann)
 head(mx)
 
@@ -518,6 +521,26 @@ design <- model.matrix(~ age+ sex + hcy)
 
 
 ```{r,dm3B}
+samplesheet<-targets
+hcy<- samplesheet$characteristics_ch1.10
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<- as.numeric(hcy)
+head(samplesheet)
+samplesheet<-samplesheet[which(!is.na(hcy)),]
+hcy<-hcy[which(!is.na(hcy))]
+hcy
+
+sex <- factor(samplesheet$`gender:ch1`)
+head(samplesheet)
+
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
+mx <-Mval_flt
+name="hcy_levels "
+head(myann)
+head(mx)
+
 design <- model.matrix(~ sex + hcy)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -532,6 +555,26 @@ design <- model.matrix(~ sex + hcy)
     ```
 
 ```{r,dm3BB}
+samplesheet<-targets
+hcy<- samplesheet$characteristics_ch1.10
+hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<- as.numeric(hcy)
+head(samplesheet)
+samplesheet<-samplesheet[which(!is.na(hcy)),]
+hcy<-hcy[which(!is.na(hcy))]
+hcy
+
+sex <- factor(samplesheet$`gender:ch1`)
+head(samplesheet)
+
+age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-as.numeric(age)
+age
+mx <-Mval_flt
+name="hcy_levels "
+head(myann)
+head(mx)
+
 design <- model.matrix(~ age + hcy)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -560,7 +603,7 @@ age<-as.numeric(age)
 age
 
 mx <-Mval_flt
-name="folate levels"
+name="folate_levels"
 head(myann)
 
 design <- model.matrix(~ sex + folate_levels)
@@ -608,7 +651,7 @@ age<-as.numeric(age)
 age
 
 mx <-Mval_flt
-name="vitmin b12 levels"
+name="vitmin_b12_levels"
 head(myann)
 
 design <- model.matrix(~ sex + vitminb12)
@@ -645,17 +688,17 @@ design <- model.matrix(~ age+ sex + vitminb12)
 downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d,dm3bb_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
 ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u,dm3bb_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
 my_summary<-data.frame(downs,ups)
-row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",1a
-                         "placebo vs supplement follow-up(sex,age)",1b
-                         "placebo vs supplement Baseline(sex)",2a
-                         "placebo vs supplement Baseline(sex,age)",2b
-                         "hcy levels(sex)",3b
-                         "hcy levels(sex,age)",3a
-                         "hcy levels(age)",3bb
-                         "folate levels(sex)",4a
-                         "folate levels(sex,age)",4b
-                         "vitb12 levels(sex)",5a
-                         "vitb12 levels(sex,age)")5b
+row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
+                         "placebo vs supplement follow-up(sex,age)",
+                         "placebo vs supplement Baseline(sex)",
+                         "placebo vs supplement Baseline(sex,age)",
+                         "hcy levels(sex)",
+                         "hcy levels(sex,age)",
+                         "hcy levels(age)",
+                         "folate levels(sex)",
+                         "folate levels(sex,age)",
+                         "vitb12 levels(sex)",
+                         "vitb12 levels(sex,age)")
 library(knitr)
 kable(my_summary)
 ```
@@ -727,11 +770,12 @@ way to assess this is with correlation analysis. I have chosen Spearman as based
 the directional p-value ranking metrics
 
 ```{r,spearman, fig.width = 8 ,fig.height = 8}
-mycontrasts <- list("placebo vs supplement follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4b,"vitb12 levels(sex,age)"=dma5b)
+mycontrasts <- list("placebo_vs_supplement-follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4b,"vitb12 levels(sex,age)"=dma5b,"placebo vs supplement follow-up(sex)"=dma1a,"placebo vs supplement Baseline(sex)"=dma2a,"hcy levels(sex)"=dma3b,"folate levels(sex)"=dma4a,"vitb12 levels(sex)"=dma5a)
 lapply(mycontrasts, head)
 myrnks<-lapply(X = mycontrasts, FUN = myranks)
 str(myrnks)
 df <- join_all(myrnks,by="rn")
+
 rownames(df) <- df$rn
 df$rn=NULL
 colnames(df) <- names(mycontrasts)
@@ -772,25 +816,37 @@ genesets <- gmt_import("ReactomePathways.gmt")
 One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
 
 ```{r,1danalysis, fig.width = 8 ,fig.height = 8}
-top_nat_vs_fh_mitch <- run_mitch_1d(dma= top_nat_vs_fh$dma, name="top_nat_vs_fh_mitch")
-head(top_nat_vs_fh_mitch,50)
-top_nat_vs_fz_mitch <- run_mitch_1d(dma= top_nat_vs_fz$dma, name="top_nat_vs_fz_mitch")
-head(top_nat_vs_fz_mitch,50)
-top_nat_vs_iui_mitch <- run_mitch_1d(dma= top_nat_vs_iui$dma, name="top_nat_vs_iui_mitch")
-head(top_nat_vs_iui_mitch,50)
-top_fh_vs_fz_mitch <- run_mitch_1d(dma= top_fh_vs_fz$dma, name="top_fh_vs_fz_mitch")
-head(top_fh_vs_fz_mitch,50)
-top_nat_vs_fx_mitch <- run_mitch_1d(dma= top_nat_vs_fx$dma, name="top_nat_vs_fx_mitch")
-head(top_nat_vs_fx_mitch,50)
-top_iui_vs_fx_mitch <- run_mitch_1d(dma= top_iui_vs_fx$dma, name="top_iui_vs_fx_mitch")
-head(top_iui_vs_fx_mitch,50)
+placebo_vs_supplement_followup_sex_age_mitch <- run_mitch_1d(dma= dma1b, name="placebo_vs_supplement_followup(sex,age)_mitch")
+head(placebo_vs_supplement_followup_sex_age_mitch,50)
+placebo_vs_supplement_Baseline_sex_age_mitch <- run_mitch_1d(dma= dma2b, name="placebo_vs_supplement_Baseline_(sex,age)_mitch")
+head(placebo_vs_supplement_Baseline_sex_age_mitch,50)
+hcy_levels_sex_age_mitch <- run_mitch_1d(dma= dma3a, name="hcy_levels(sex,age)_mitch")
+head(hcy_levels_sex_age_mitch,50)
+folate_levels_sex_age_mitch <- run_mitch_1d(dma= dma4b, name="folate_levels(sex,age)_mitch")
+head(folate_levels_sex_age_mitch,50)
+vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5b, name="vitb12 levels(sex,age)_mitch")
+head(vitb12_levels_sex_age_mitch,50)
+placebo_vs_supplement_Baseline_sex_mitch <- run_mitch_1d(dma= dma1a, name="placebo vs supplement Baseline(sex)_mitch")
+head(placebo_vs_supplement_Baseline_sex_mitch,50)
+placebo_vs_supplement_Baseline_sex_mitch <- run_mitch_1d(dma= dma2a, name="placebo_vs_supplement_Baseline_(sex)_mitch")
+head(placebo_vs_supplement_Baseline_sex_mitch,50)
+hcy_levels_sex_mitch <- run_mitch_1d(dma= dma3b, name="hcy_levels(sex)_mitch")
+head(hcy_levels_sex_mitch,50)
+folate_levels_sex_mitch <- run_mitch_1d(dma= dma4a, name="folate_levels(sex)_mitch")
+head(folate_levels_sex_mitch,50)
+vitb12_levels_sex_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex)_mitch")
+head(vitb12_levels_sex_mitch,50)
 ```
+
+
 
 # Run multi-dimensional enrichment analysis
 
 ```{r,mitch, fig.width = 8 ,fig.height = 8}
-xl <- list("nat_vs_fh"=top_nat_vs_fh$dma, "top_nat_vs_fz"=top_nat_vs_fz$dma, "top_nat_vs_iui"=top_nat_vs_iui$dma,
-           "top_fh_vs_fz"=top_fh_vs_fz$dma,"top_nat_vs_fx"=top_nat_vs_fx$dma, "top_iui_vs_fx"=top_iui_vs_fx$dma)
+xl <- list("placebo vs supplement follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b, 
+"hcy_levels(sex_age)"=dma3a,"folate_levels(sex_age)"=dma4b,"vitb12_levels_sex_age_mitch"= dma5b, 
+"placebo_vs_supplement_Baseline(sex)"=dma1a,"placebo_vs_supplement_Baseline(sex)"=dma2a,"hcy_levels(sex)"=dma3b, 
+"folate_levels(sex)"=dma4a,"vitb12_levels(sex)"=dma5a)
 xxl <- lapply(X = xl,run_mitch_rank)  
 xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
 xxll <- join_all(xxxl,by="genenames")
@@ -822,7 +878,7 @@ unlink("estill_multi_mitch.pdf")
                          "folate levels(sex)",4a
                          "folate levels(sex,age)",4b
                          "vitb12 levels(sex)",5a
-                         "vitb12 levels(sex,age)")5b
+                         "vitb12 levels(sex,age)"5b
 library(knitr)
 
 
