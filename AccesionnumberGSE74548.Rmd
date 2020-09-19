@@ -198,18 +198,29 @@ relative contributions of PCs very much.
 ## sex chromosome diagnostic
 ```{r,sex chromosome diagnostic}
 cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
+cgx
 cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
+cgy
 mvx<-Mval[which(rownames(Mval) %in% cgx),]
+mvx
 mvy<-Mval[which(rownames(Mval) %in% cgy),]
+mvy
 
 targets_m<-rownames(subset(targets,`gender:ch1`=="male"))
+targets_m
 targets_f<-rownames(subset(targets,`gender:ch1`=="female"))
+targets_f
+
+
+
 Mvalm<-Mval[,colnames(Mval)%in%targets_m]
 Mvalf<-Mval[,colnames(Mval)%in%targets_f]
-dim(Mvalm)
+Mvalf
 dim(Mvalf)
+
 mvxm<-Mvalm[which(rownames(Mvalm) %in% cgx),]
 mvym<-Mvalm[which(rownames(Mvalm) %in% cgy),]
+mvxm
 
 mvxf<-Mvalf[which(rownames(Mvalf) %in% cgx),]
 mvyf<-Mvalf[which(rownames(Mvalf) %in% cgy),]
@@ -218,61 +229,6 @@ plot(colMeans(mvx),colMeans(mvy),col="gray")
 points(colMeans(mvxf),colMeans(mvyf),col="red")
 points(colMeans(mvxm),colMeans(mvym),col="blue")
 
-```
-
-
-```{r,scree,fig.cap="Figure 2. Screeplot shows contribution of top principal components to the overall variation in the experiment."}
-colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
-colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
-head(Mval)
-head(Mval_flt)
-par(mfrow=c(2,1))  
-myscree(Mval,main="incl sex chr")
-myscree(Mval_flt,main="excl sex chr")
-```
-```{r,defected rows which is not identified as either male or female}
-
-GSM1922496<-which(targets$geo_accession== "GSM1922496")
-GSM1922576<-which(targets$geo_accession== "GSM1922576")
-GSM1922578<-which(targets$geo_accession== "GSM1922578")
-GSM1922618<-which(targets$geo_accession== "GSM1922618")
-GSM1922648<-which(targets$geo_accession== "GSM1922648")
-defects<-c(GSM1922496,GSM1922576,GSM1922578,GSM1922618,GSM1922648)
-defects<-data.frame(defects)
-defects
-
-which(colnames(targets)== "characteristics_ch1.4")
-
-#detecting the sex of the defected rows
-GSM1922496<-targets[3,14]
-GSM1922576<-targets[83,14]
-GSM1922578<-targets[85,14]
-GSM1922618<-targets[125,14]
-GSM1922648<-targets[155,14]
-
-defects <- c(GSM1922496,GSM1922576,GSM1922578,GSM1922618,GSM1922648)
-defects<-data.frame(defects)
-row.names(defects)<-c("GSM1922496",
-                      "GSM1922576",
-                      "GSM1922578",
-                      "GSM1922618",
-                      "GSM1922648")
-library(knitr)
-kable(defects)
-defects
-which(row.names(targets)=="GSM1922638")
-targets[83,14]
-targets[3,14]
-targets[5,14]
-targets[105,14]
-targets[125,14]
-```
-
-```{r,updated target after eliminating defects}                                       
-targets<-targets[-c(3,83,85,125,155), ]
-updated<-targets[-c(83,3,5,105,125),]
-str(targets)
-dim(updated)
 ```
 
 
@@ -384,8 +340,6 @@ legend("center",legend=levels(targets$vitb12_levels),pch=16,cex=1.2,col=colour_p
 plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
 ```
-
-
 
 
 
@@ -691,8 +645,12 @@ design <- model.matrix(~ sex + vitminb12)
     head(dma5a)
     dm5a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
     dm5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-    
-    ```
+
+make_volcano(dma5a,name = "vitmin_b12_levels",mx=Mval_flt)   
+make_beeswarms(dma5a,name = "vitmin_b12_levels",mx=Mval_flt,groups=)
+
+
+```
     
 ```{r,dm5b}
 design <- model.matrix(~ age+ sex + vitminb12)
@@ -821,15 +779,19 @@ mycors
 ## Enrichment analysis
 
 We will be using the recently published package mitch to perform enrichment analysis, using
-average promoter methylation change as an indicaator of gene activity.
+average promoter methylation change as an indicator of gene activity.
 Enrichment will be tested with the mitch package.
 
-top_nat_vs_fh$dma
-top_nat_vs_fz$dm
-top_nat_vs_iui$dma
-top_fh_vs_fz$dma
-top_nat_vs_fx$dma
-top_iui_vs_fx$dma
+dma1b (placebo_vs_supplement_followup(sex,age))
+dma2b (placebo_vs_supplement_Baseline(sex,age))
+dma3a (hcy_levels(sex,age))
+dma4b (folate_levels(sex,age))
+dma5b (vitb12 levels(sex,age))
+dma1a (placebo vs supplement Baseline(sex))
+dma2a (placebo_vs_supplement_Baseline(sex))
+dma3b (hcy_levels(sex))
+dma4a (folate_levels(sex))
+dma5a (vitb12 levels(sex))
 
 ```{r,genesets, fig.width = 8 ,fig.height = 8}
 library("mitch")
@@ -890,13 +852,64 @@ unlink("estill_multi_mitch.pdf")
         mitch_plots(res,outfile="estill_multi_mitch.pdf")
         , file = "/dev/null", append = FALSE,
         type = c("output", "message"), split = FALSE)
+     
+
+#spearman analysis for multi-dimension enrichment analysis
+mycors <- cor(xxll,method = "spearman")
+my_palette <- colorRampPalette(c("darkred","red", "orange", "yellow","white"))(n = 25)
+heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.8,
+    col=my_palette,main="multi-dimensional enrichment analysis")
+mycors     
 ```
 
+```{r,volcano plot}
+# Here is a function to make a volcano plot
+make_volcano()
+args(make_heatmap2)
+make_volcano <- function(dm,name,mx) {
+    sig <- subset(dm,adj.P.Val<0.05)
+    N_SIG=nrow(sig)
+    N_UP=nrow(subset(sig,logFC>0))
+    N_DN=nrow(subset(sig,logFC<0))
+    HEADER=paste(N_SIG,"@5%FDR,", N_UP, "up", N_DN, "dn")
+    plot(dm$logFC,-log10(dm$P.Val),cex=0.5,pch=19,col="darkgray",
+        main=name, xlab="log FC", ylab="-log10 pval")
+    mtext(HEADER)
+    grid()
+    points(sig$logFC,-log10(sig$P.Val),cex=0.5,pch=19,col="red")
+}
 
+mx
 
+make_heatmap2 <- function(confects,name,mx,n, groups) {
+  topgenes <-  head(confects$table$name,n)
+  ss <- mx[which(rownames(mx) %in% topgenes),]
+  my_palette <- colorRampPalette(c("blue", "white", "red"))(n = 25)
+  colCols <- as.numeric(as.factor(groups))
+  colCols <- gsub("1","orange",colCols)
+  colCols <- gsub("0","yellow",colCols)
+  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.4,trace="none",cexCol=0.4,
+    ColSideColors=colCols ,  col=my_palette, main=name)
+}
 
-
-
+make_dm_plots <- function(dm,name,mx,mxs,groups=groups,confects=confects,dmr,comp=comp,cgi=cgi) {
+    make_volcano(dm,name,mx)
+    make_beeswarms(dm ,name , mx , groups , n= 15)
+    make_heatmap(dm , name , mxs ,n = 50, groups)
+    make_beeswarms_confects(confects, name, mx, groups, n=15)
+    make_heatmap2(confects, name, mxs, n = 50, groups)
+    
+    dm_up <- rownames(subset(dm,adj.P.Val<0.05 & logFC>0))
+    dm_dn <- rownames(subset(dm,adj.P.Val<0.05 & logFC<0))
+    sig <- min(length(dm_up),length(dm_dn))
+    if (sig>10) {
+      make_forest_plots(comp)
+      make_forest_plots(cgi)
+      make_circos(dmr)
+    }  
+}  
+??confects
+```
 
 
 
