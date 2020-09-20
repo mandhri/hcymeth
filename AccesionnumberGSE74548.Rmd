@@ -181,6 +181,37 @@ Mval_flt <- log2((meth + 100)/(unmeth + 100))
 beta_flt <- getBeta(mSetFlt)
 ```
 
+## sex chromosome diagnostic
+```{r,sex chromosome diagnostic}
+cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
+cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
+mvx<-Mval[which(rownames(Mval) %in% cgx),]
+mvy<-Mval[which(rownames(Mval) %in% cgy),]
+
+
+targets_m<-rownames(subset(targets,`gender:ch1`=="male"))
+targets_f<-rownames(subset(targets,`gender:ch1`=="female"))
+
+
+Mvalm<-Mval[,colnames(Mval)%in%targets_m]
+Mvalf<-Mval[,colnames(Mval)%in%targets_f]
+
+Mvalf
+dim(Mvalf)
+
+head(Mvalm)
+mvxm<-Mvalm[which(rownames(Mvalm) %in% cgx),]
+mvym<-Mvalm[which(rownames(Mvalm) %in% cgy),]
+mvxm
+
+mvxf<-Mvalf[which(rownames(Mvalf) %in% cgx),]
+mvyf<-Mvalf[which(rownames(Mvalf) %in% cgy),]
+
+plot(colMeans(mvx),colMeans(mvy),col="gray")
+points(colMeans(mvxf),colMeans(mvyf),col="red")
+points(colMeans(mvxm),colMeans(mvym),col="blue")
+
+```
 ## MDS analysis
 [Multidimensional scaling(https://en.wikipedia.org/wiki/Multidimensional_scaling)  plot is a method used
 to identify the major sources of variation in a dataset. In the MDS plots below, I will be plotting the 
@@ -195,42 +226,15 @@ As we can see in Figure 2, the main source of variation is what is shown in PC1,
 extent on the other dimensions. Interestingly, excluding sex chromosomes does not seem to change the 
 relative contributions of PCs very much.
 
-## sex chromosome diagnostic
-```{r,sex chromosome diagnostic}
-cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
-cgx
-cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
-cgy
-mvx<-Mval[which(rownames(Mval) %in% cgx),]
-mvx
-mvy<-Mval[which(rownames(Mval) %in% cgy),]
-mvy
-
-targets_m<-rownames(subset(targets,`gender:ch1`=="male"))
-targets_m
-targets_f<-rownames(subset(targets,`gender:ch1`=="female"))
-targets_f
-
-
-
-Mvalm<-Mval[,colnames(Mval)%in%targets_m]
-Mvalf<-Mval[,colnames(Mval)%in%targets_f]
-Mvalf
-dim(Mvalf)
-
-mvxm<-Mvalm[which(rownames(Mvalm) %in% cgx),]
-mvym<-Mvalm[which(rownames(Mvalm) %in% cgy),]
-mvxm
-
-mvxf<-Mvalf[which(rownames(Mvalf) %in% cgx),]
-mvyf<-Mvalf[which(rownames(Mvalf) %in% cgy),]
-
-plot(colMeans(mvx),colMeans(mvy),col="gray")
-points(colMeans(mvxf),colMeans(mvyf),col="red")
-points(colMeans(mvxm),colMeans(mvym),col="blue")
-
+```{r,scree,fig.cap="Figure 2. Screeplot shows contribution of top principal components to the overall variation in the experiment."}
+colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
+colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
+head(Mval)
+head(Mval_flt)
+par(mfrow=c(2,1))  
+myscree(Mval,main="incl sex chr")
+myscree(Mval_flt,main="excl sex chr")
 ```
-
 
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
@@ -269,8 +273,8 @@ colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(hcy_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
 legend("center",legend=levels(hcy_groups),pch=16,cex=1.2,col=colour_palette)
-plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,hist2}
@@ -291,8 +295,8 @@ colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(age_groups))]
 plot(1,axes = FALSE,xlab="",ylab="",main="age")
 legend("center",legend=levels(age_groups),pch=16,cex=1.2,col=colour_palette)
-plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-plotMDS(mydist_flt,labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt,labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,hist3}
@@ -314,8 +318,8 @@ colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$folate_levels))]
 plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
 legend("center",legend=levels(targets$folate_levels),pch=16,cex=1.2,col=colour_palette)
-plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
 ```
 
 ```{r,hist4}
@@ -337,8 +341,8 @@ colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
 colours <- colour_palette[as.integer(factor(targets$vitb12_levels))]
 plot(1,axes = FALSE,xlab="",ylab="",main="vitb12 levels")
 legend("center",legend=levels(targets$vitb12_levels),pch=16,cex=1.2,col=colour_palette)
-plotMDS(mydist, labels=targets$Sample_Name,col=colours,main="sex chromosomes included")
-plotMDS(mydist_flt, labels=targets$Sample_Name,col=colours,main="sex chromosomes excluded")
+plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
+plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
 ```
 
 
@@ -486,8 +490,8 @@ head(myann)
 head(mx)
 
 design <- model.matrix(~ age+ sex + hcy)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
+mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=4, number = Inf)
