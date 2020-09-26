@@ -361,36 +361,8 @@ There are several differential contrasts that would be of interest to us in this
 
 * vitb12 levels(172)
 
-
-```{r,dm1A}
-samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
-sex<- factor(samplesheet$`gender:ch1`)
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
-age<-as.numeric(age)
-age
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
-groups
-mx <-Mval_flt
-name="placebo_vs_supplement_follow-up"
-head(myann)
-
-head(samplesheet)
-design <- model.matrix(~ sex + groups)
-mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-fit.reduced <- lmFit(mxs,design)
-fit.reduced <- eBayes(fit.reduced)
-summary(decideTests(fit.reduced))
-dm <- topTable(fit.reduced,coef=3, number = Inf)
-dma <- merge(myann,dm,by=0)
-dma1a <- dma[order(dma$P.Value),]
-dma1a
-head(dm)
-head(dma1a)
-dm1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-```
     
-```{r,dm1B}
+```{r,dm1A}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
@@ -401,6 +373,7 @@ mx <-Mval_flt
 name="placebo_vs_supplement_follow-up"
 head(myann)
 head(samplesheet)
+
 design <- model.matrix(~age+ sex +groups)
     mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -408,40 +381,26 @@ design <- model.matrix(~age+ sex +groups)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
-    dma1b <- dma[order(dma$P.Value),]
+    dma1a <- dma[order(dma$P.Value),]
     head(dm)
-    head(dma1b)
+    head(dma1a)
 dim(mxs)
 dim(design)
-dm1b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm1b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+
+confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects)
+
+make_volcano(dma1a,name = "placebo_vs_supplement_follow-up(sex,age)",mx=Mval_flt)
+rownames(dma1a)<-dma1a[,1]
+make_beeswarms(dm=dma1a ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+
+make_heatmap(dm=dma1a , name="placebo_vs_supplement_baseline(sex,age)" , mx=mxs ,n = 50, groups=groups)
+make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
-
-
 ```{r,dm2A}
-samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
-sex <- factor(samplesheet$`gender:ch1`)
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
-mx <-Mval_flt
-name="placebo_vs_supplement_Baseline"
-head(myann)
-groups
-
-head(samplesheet)
-design <- model.matrix(~ sex + groups)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma2a <- dma[order(dma$P.Value),]
-    head(dma2a)
-dm2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-```
-
-```{r,dm2B}
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
@@ -459,13 +418,25 @@ design <- model.matrix(~age+ sex +groups)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
-    dma2b <- dma[order(dma$P.Value),]
+    dma2a <- dma[order(dma$P.Value),]
     head(dm)
-    head(dma2b)
+    head(dma2a)
 dim(mxs)
 dim(design)
-dm2b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm2b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+
+
+confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects)
+
+make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
+rownames(dma2a)<-dma2a[,1]
+make_beeswarms(dm=dma2a ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+
+make_heatmap(dm=dma2a , name="plb_supl_baseline" , mx=mxs ,n = 50, groups=groups)
+make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
 ```{r,dm3A}
@@ -477,7 +448,7 @@ head(samplesheet)
 samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
 hcy
-
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
 
@@ -499,80 +470,21 @@ fit.reduced <- lmFit(mxs,design)
     dma3a <- dma[order(dma$P.Value),]
     head(dm)
     head(dma3a)
- dm3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
- dm3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
+ dma3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+ dma3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0)) 
+ 
+confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects)
+
+make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
+rownames(dma3a)<-dma3a[,1]
+make_beeswarms(dm=dma3a ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+make_beeswarms_confects(confects = confects ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+make_heatmap(dm=dma3a , name="hcy_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
+make_heatmap2(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
-
-```{r,dm3B}
-samplesheet<-targets
-hcy<- samplesheet$characteristics_ch1.10
-hcy<-sapply(strsplit(hcy," "),"[[",5)
-hcy<- as.numeric(hcy)
-head(samplesheet)
-samplesheet<-samplesheet[which(!is.na(hcy)),]
-hcy<-hcy[which(!is.na(hcy))]
-hcy
-
-sex <- factor(samplesheet$`gender:ch1`)
-head(samplesheet)
-
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
-age<-as.numeric(age)
-age
-mx <-Mval_flt
-name="hcy_levels "
-head(myann)
-head(mx)
-
-design <- model.matrix(~ sex + hcy)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma3b <- dma[order(dma$P.Value),]
-    head(dma3b)
- dm3b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
- dm3b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
-    ```
-
-```{r,dm3BB}
-samplesheet<-targets
-hcy<- samplesheet$characteristics_ch1.10
-hcy<-sapply(strsplit(hcy," "),"[[",5)
-hcy<- as.numeric(hcy)
-head(samplesheet)
-samplesheet<-samplesheet[which(!is.na(hcy)),]
-hcy<-hcy[which(!is.na(hcy))]
-hcy
-
-sex <- factor(samplesheet$`gender:ch1`)
-head(samplesheet)
-
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
-age<-as.numeric(age)
-age
-mx <-Mval_flt
-name="hcy_levels "
-head(myann)
-head(mx)
-
-design <- model.matrix(~ age + hcy)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma3bb <- dma[order(dma$P.Value),]
-    head(dma3bb)
- dm3bb_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
- dm3bb_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))   
-    ```
-
-```{r,dm4a}
+```{r,dm4A}    
 samplesheet<-targets
 folate_levels<- samplesheet$characteristics_ch1.8
 folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
@@ -585,27 +497,11 @@ dim(sex)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
 age<-as.numeric(age)
 age
-
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
 name="folate_levels"
 head(myann)
 
-design <- model.matrix(~ sex + folate_levels)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma4a <- dma[order(dma$P.Value),]
-    head(dma4a)
-    dim(design)
-    dim(mxs)
-dm4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-dm4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-```
-
-```{r,dm4B}    
 design <- model.matrix(~ age+ sex + folate_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -613,14 +509,24 @@ design <- model.matrix(~ age+ sex + folate_levels)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
-    dma4b <- dma[order(dma$P.Value),]
+    dma4a <- dma[order(dma$P.Value),]
     head(dm)
-    head(dma4b)
-    dm4b_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-    dm4b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-```
+    head(dma4a)
+    dma4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+    dma4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
-```{r,dm5a}
+confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects)
+
+make_volcano(dma4a,name = "folate_levels(sex,age)",mx=Mval_flt)
+rownames(dma4a)<-dma4a[,1]
+make_beeswarms(dm=dma4a ,name="folate_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+make_beeswarms_confects(confects = confects ,name="folate_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+
+make_heatmap(dm=dma4a , name="folate_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
+make_heatmap2(confects = confects , name="folate_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
+```
+```{r,dm5A}
 samplesheet<-targets
 vitminb12<- samplesheet$characteristics_ch1.9
 vitminb12<-sapply(strsplit(vitminb12," "),"[[",6)
@@ -638,25 +544,7 @@ mx <-Mval_flt
 name="vitmin_b12_levels"
 head(myann)
 
-design <- model.matrix(~ sex + vitminb12)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=3, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma5a <- dma[order(dma$P.Value),]
-    head(dma5a)
-    dm5a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-    dm5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-
-make_volcano(dma5a,name = "vitmin_b12_levels",mx=Mval_flt)   
-make_beeswarms(dma5a,name = "vitmin_b12_levels",mx=Mval_flt,groups=)
-
-
-```
-    
-```{r,dm5b}
+groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 design <- model.matrix(~ age+ sex + vitminb12)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -664,28 +552,35 @@ design <- model.matrix(~ age+ sex + vitminb12)
     summary(decideTests(fit.reduced))
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
-    dma5b <- dma[order(dma$P.Value),]
+    dma5a <- dma[order(dma$P.Value),]
     head(dm)
-    head(dma5b)
-    dm5b_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-    dm5b_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
-    
+    head(dma5a)
+    dma5a_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+    dma5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+ 
+confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects)
+
+make_volcano(dma5a,name = "vitmin_b12_levels(sex,age)",mx=Mval_flt)
+rownames(dma5a)<-dma5a[,1]
+make_beeswarms(dm=dma5a ,name="vitmin_b12_levels" , mx=beta_flt , groups=groups , n= 15)
+make_beeswarms_confects(confects = confects ,name="vitmin_b12_levels" , mx=beta_flt , groups=groups , n= 15)
+
+make_heatmap(dm=dma5a , name="vitmin_b12_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
+make_heatmap2(confects = confects , name="vitmin_b12_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
+
+
 ```{r,summarised dms}                                                        
-downs<-c(dm1a_d,dm1b_d,dm2b_d,dm2a_d, dm3a_d,dm3b_d,dm3bb_d, dm4a_d,dm4b_d,dm5a_d,dm5b_d)
-ups<-c(dm1a_u,dm1b_u,dm2b_u,dm2a_u, dm3a_u,dm3b_u,dm3bb_u, dm4a_u,dm4b_u,dm5a_u,dm5b_u)
+
+downs<-c(dma1a_d,dma2a_d,dma3a_d, dma4a_d,dma5a_d)
+ups<-c(dma1a_u,dma2a_u, dma3a_u,dma4a_u,dma5a_u)
 my_summary<-data.frame(downs,ups)
-row.names(my_summary)<-c("placebo vs supplement follow-up(sex)",
-                         "placebo vs supplement follow-up(sex,age)",
-                         "placebo vs supplement Baseline(sex)",
+row.names(my_summary)<-c("placebo vs supplement follow-up(sex,age)",
                          "placebo vs supplement Baseline(sex,age)",
-                         "hcy levels(sex)",
                          "hcy levels(sex,age)",
-                         "hcy levels(age)",
-                         "folate levels(sex)",
                          "folate levels(sex,age)",
-                         "vitb12 levels(sex)",
                          "vitb12 levels(sex,age)")
 library(knitr)
 kable(my_summary)
@@ -695,70 +590,73 @@ kable(my_summary)
 First, we look at the similarity of dmps altered by fresh and frozen procedures. The overlap is very large. 
 This indicates a high degree of similarity between the profiles.
 
-```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex)", fig.width = 8 ,fig.height = 8}
-v1 <- list("plb v sup fl(up)" =dm1a_u , 
+
+```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex,age)", fig.width = 8 ,fig.height = 8}
+v1 <- list("plb v sup fl(up)" =dma1a_u , 
            "hcy(up)" =dm3a_d ,
-           "plb v sup fl(dwn)" =dm1a_d ,
-           "hcy(dwn)" =dm3b_d)
+           "plb v sup fl(dwn)" =dma1a_d ,
+           "hcy(dwn)" =dm3a_d)
 head(v1)
 plot(euler(v1, shape = "ellipse"), quantities = TRUE)
 ```
 
-```{r,venn2,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex,age)", fig.width = 8 ,fig.height = 8}
-v2 <- list("plb v sup fl(up)" =dm1b_u , 
-           "hcy(up)" =dm3a_d ,
-           "plb v sup fl(dwn)" =dm1b_d ,
-           "hcy(dwn)" =dm3b_d)
+
+```{r,venn3]2,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v2 <- list("fol(up)" =dma4a_u, 
+           "hcy(up)" =dma3a_u,
+           "fol(dwn)" =dma4a_d,
+           "hcy(dwn)" =dma3a_d)
 head(v2)
-plot(euler(v2, shape = "ellipse"), quantities = TRUE)
+str(v2)
+plot(euler(23, shape = "ellipse"), quantities = TRUE)
+
 ```
 
 
-```{r,venn3,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
-v3 <- list("fol(up)" =dm4b_u, 
-           "hcy(up)" =dm3a_u,
-           "fol(dwn)" =dm4b_d,
-           "hcy(dwn)" =dm3a_d)
+```{r,venn3,fig.cap="Comparison of probes in related to hcy(age) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v3 <- list("plb v sup fl(up)" =dma1a_u, 
+           "fol(up)" = dma4a_u ,
+           "plb v sup fl(dwn)" =dma1a_d ,
+           "fol(dwn)" =dma4a_d)
 head(v3)
-str(v3)
 plot(euler(v3, shape = "ellipse"), quantities = TRUE)
-
 ```
 
 
 
-```{r,venn4,fig.cap="Comparison of probes in related to hcy(age) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
-v4 <- list("plb v sup fl(up)" =dm1b_u, 
-           "fol(up)" = dm4b_u ,
-           "plb v sup fl(dwn)" =dm1b_d ,
-           "fol(dwn)" =dm4b_d)
+
+
+
+
+
+
+```{r,venn4,fig.cap="Comparison of probes in related to hcy vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+v4 <- list("hcy(up)" =dma3a_u, 
+           "fol(up)" = dma4a_u ,
+           "hcy(dwn)" =dma3a_d ,
+           "fol(dwn)" =dma4a_d)
 head(v4)
 plot(euler(v4, shape = "ellipse"), quantities = TRUE)
 ```
 
-```{r,venn5,fig.cap="Comparison of probes in related to hcy vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
-v5 <- list("hcy(up)" =dm3a_u, 
-           "fol(up)" = dm4b_u ,
-           "hcy(dwn)" =dm3a_d ,
-           "fol(dwn)" =dm4b_d)
+
+```{r,venn5,fig.cap="Comparison of probes in related to hcy vs vitb12 level(sex,age)", fig.width = 8 ,fig.height = 8}
+v5<- list("hcy(up)" =dma3a_u, 
+           "vitb12(up)" = dma5a_u ,
+           "hcy(dwn)" =dma3a_d ,
+           "vitb12(dwn)" =dma5a_d)
 head(v5)
 plot(euler(v5, shape = "ellipse"), quantities = TRUE)
 ```
-```{r,venn6,fig.cap="Comparison of probes in related to hcy vs vitb12 level(sex,age)", fig.width = 8 ,fig.height = 8}
-v6<- list("hcy(up)" =dm3a_u, 
-           "vitb12(up)" = dm5b_u ,
-           "hcy(dwn)" =dm3a_d ,
-           "vitb12(dwn)" =dm5b_d)
-head(v6)
-plot(euler(v6, shape = "ellipse"), quantities = TRUE)
-```
+
+
 ## Spearman correlations of each contrast
 While the above Venn diagrams are suggestive of similarity between contrasts, the best 
 way to assess this is with correlation analysis. I have chosen Spearman as based on
 the directional p-value ranking metrics
 
 ```{r,spearman, fig.width = 8 ,fig.height = 8}
-mycontrasts <- list("placebo_vs_supplement-follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4b,"vitb12 levels(sex,age)"=dma5b,"placebo vs supplement follow-up(sex)"=dma1a,"placebo vs supplement Baseline(sex)"=dma2a,"hcy levels(sex)"=dma3b,"folate levels(sex)"=dma4a,"vitb12 levels(sex)"=dma5a)
+mycontrasts <- list("placebo_vs_supplement-follow-up(sex,age)"=dma1a,"placebo vs supplement Baseline(sex,age)"=dma2a,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4a,"vitb12 levels(sex,age)"=dma5a)
 lapply(mycontrasts, head)
 myrnks<-lapply(X = mycontrasts, FUN = myranks)
 str(myrnks)
@@ -775,27 +673,17 @@ heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.
 mycors
 ```
 
-
-
-
-
-
 ## Enrichment analysis
 
 We will be using the recently published package mitch to perform enrichment analysis, using
 average promoter methylation change as an indicator of gene activity.
 Enrichment will be tested with the mitch package.
 
-dma1b (placebo_vs_supplement_followup(sex,age))
-dma2b (placebo_vs_supplement_Baseline(sex,age))
+dma1a (placebo_vs_supplement_followup(sex,age))
+dma2ba (placebo_vs_supplement_Baseline(sex,age))
 dma3a (hcy_levels(sex,age))
-dma4b (folate_levels(sex,age))
-dma5b (vitb12 levels(sex,age))
-dma1a (placebo vs supplement Baseline(sex))
-dma2a (placebo_vs_supplement_Baseline(sex))
-dma3b (hcy_levels(sex))
-dma4a (folate_levels(sex))
-dma5a (vitb12 levels(sex))
+dma4a (folate_levels(sex,age))
+dma5a (vitb12 levels(sex,age))
 
 ```{r,genesets, fig.width = 8 ,fig.height = 8}
 library("mitch")
@@ -808,26 +696,16 @@ genesets <- gmt_import("ReactomePathways.gmt")
 One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
 
 ```{r,1danalysis, fig.width = 8 ,fig.height = 8}
-placebo_vs_supplement_followup_sex_age_mitch <- run_mitch_1d(dma= dma1b, name="placebo_vs_supplement_followup(sex,age)_mitch")
+placebo_vs_supplement_followup_sex_age_mitch <- run_mitch_1d(dma= dma1a, name="placebo_vs_supplement_followup(sex,age)_mitch")
 head(placebo_vs_supplement_followup_sex_age_mitch,50)
-placebo_vs_supplement_Baseline_sex_age_mitch <- run_mitch_1d(dma= dma2b, name="placebo_vs_supplement_Baseline_(sex,age)_mitch")
+placebo_vs_supplement_Baseline_sex_age_mitch <- run_mitch_1d(dma= dma2a, name="placebo_vs_supplement_Baseline_(sex,age)_mitch")
 head(placebo_vs_supplement_Baseline_sex_age_mitch,50)
 hcy_levels_sex_age_mitch <- run_mitch_1d(dma= dma3a, name="hcy_levels(sex,age)_mitch")
 head(hcy_levels_sex_age_mitch,50)
-folate_levels_sex_age_mitch <- run_mitch_1d(dma= dma4b, name="folate_levels(sex,age)_mitch")
+folate_levels_sex_age_mitch <- run_mitch_1d(dma= dma4a, name="folate_levels(sex,age)_mitch")
 head(folate_levels_sex_age_mitch,50)
-vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5b, name="vitb12 levels(sex,age)_mitch")
+vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex,age)_mitch")
 head(vitb12_levels_sex_age_mitch,50)
-placebo_vs_supplement_Baseline_sex_mitch <- run_mitch_1d(dma= dma1a, name="placebo vs supplement Baseline(sex)_mitch")
-head(placebo_vs_supplement_Baseline_sex_mitch,50)
-placebo_vs_supplement_Baseline_sex_mitch <- run_mitch_1d(dma= dma2a, name="placebo_vs_supplement_Baseline_(sex)_mitch")
-head(placebo_vs_supplement_Baseline_sex_mitch,50)
-hcy_levels_sex_mitch <- run_mitch_1d(dma= dma3b, name="hcy_levels(sex)_mitch")
-head(hcy_levels_sex_mitch,50)
-folate_levels_sex_mitch <- run_mitch_1d(dma= dma4a, name="folate_levels(sex)_mitch")
-head(folate_levels_sex_mitch,50)
-vitb12_levels_sex_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex)_mitch")
-head(vitb12_levels_sex_mitch,50)
 ```
 
 
@@ -835,10 +713,8 @@ head(vitb12_levels_sex_mitch,50)
 # Run multi-dimensional enrichment analysis
 
 ```{r,mitch, fig.width = 8 ,fig.height = 8}
-xl <- list("placebo vs supplement follow-up(sex,age)"=dma1b,"placebo vs supplement Baseline(sex,age)"=dma2b, 
-"hcy_levels(sex_age)"=dma3a,"folate_levels(sex_age)"=dma4b,"vitb12_levels_sex_age_mitch"= dma5b, 
-"placebo_vs_supplement_Baseline(sex)"=dma1a,"placebo_vs_supplement_Baseline(sex)"=dma2a,"hcy_levels(sex)"=dma3b, 
-"folate_levels(sex)"=dma4a,"vitb12_levels(sex)"=dma5a)
+xl <- list("placebo vs supplement follow-up(sex,age)"=dma1a,"placebo vs supplement Baseline(sex,age)"=dma2a, 
+"hcy_levels(sex_age)"=dma3a,"folate_levels(sex_age)"=dma4a,"vitb12_levels(sex_age)"= dma5a)
 xxl <- lapply(X = xl,run_mitch_rank)  
 xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
 xxll <- join_all(xxxl,by="genenames")
@@ -857,63 +733,13 @@ unlink("estill_multi_mitch.pdf")
         , file = "/dev/null", append = FALSE,
         type = c("output", "message"), split = FALSE)
      
-
-#spearman analysis for multi-dimension enrichment analysis
-mycors <- cor(xxll,method = "spearman")
-my_palette <- colorRampPalette(c("darkred","red", "orange", "yellow","white"))(n = 25)
-heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.8,
-    col=my_palette,main="multi-dimensional enrichment analysis")
-mycors     
+length(which(res$enrichment_result$p.adjustMANOVA<0.05))
+hm<-as.matrix(res$enrichment_result[1:40,4:8])
+rownames(hm)<-res$enrichment_result[1:40,1]
+heatmap.2(hm,trace ="none",scale = "none",dendrogram = "none",margins = c(7,25),cexCol = 0.7)
 ```
 
-```{r,volcano plot}
-# Here is a function to make a volcano plot
-make_volcano()
-args(make_heatmap2)
-make_volcano <- function(dm,name,mx) {
-    sig <- subset(dm,adj.P.Val<0.05)
-    N_SIG=nrow(sig)
-    N_UP=nrow(subset(sig,logFC>0))
-    N_DN=nrow(subset(sig,logFC<0))
-    HEADER=paste(N_SIG,"@5%FDR,", N_UP, "up", N_DN, "dn")
-    plot(dm$logFC,-log10(dm$P.Val),cex=0.5,pch=19,col="darkgray",
-        main=name, xlab="log FC", ylab="-log10 pval")
-    mtext(HEADER)
-    grid()
-    points(sig$logFC,-log10(sig$P.Val),cex=0.5,pch=19,col="red")
-}
 
-mx
-
-make_heatmap2 <- function(confects,name,mx,n, groups) {
-  topgenes <-  head(confects$table$name,n)
-  ss <- mx[which(rownames(mx) %in% topgenes),]
-  my_palette <- colorRampPalette(c("blue", "white", "red"))(n = 25)
-  colCols <- as.numeric(as.factor(groups))
-  colCols <- gsub("1","orange",colCols)
-  colCols <- gsub("0","yellow",colCols)
-  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.4,trace="none",cexCol=0.4,
-    ColSideColors=colCols ,  col=my_palette, main=name)
-}
-
-make_dm_plots <- function(dm,name,mx,mxs,groups=groups,confects=confects,dmr,comp=comp,cgi=cgi) {
-    make_volcano(dm,name,mx)
-    make_beeswarms(dm ,name , mx , groups , n= 15)
-    make_heatmap(dm , name , mxs ,n = 50, groups)
-    make_beeswarms_confects(confects, name, mx, groups, n=15)
-    make_heatmap2(confects, name, mxs, n = 50, groups)
-    
-    dm_up <- rownames(subset(dm,adj.P.Val<0.05 & logFC>0))
-    dm_dn <- rownames(subset(dm,adj.P.Val<0.05 & logFC<0))
-    sig <- min(length(dm_up),length(dm_dn))
-    if (sig>10) {
-      make_forest_plots(comp)
-      make_forest_plots(cgi)
-      make_circos(dmr)
-    }  
-}  
-??confects
-```
 
 
 
