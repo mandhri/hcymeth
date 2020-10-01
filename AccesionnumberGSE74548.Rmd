@@ -85,6 +85,21 @@ myranks<-function(x) {
   y$rn <- x$Row.names
   return(y)
 }
+
+
+heatmap_c<-function(dm,name,mx,n, groups) {
+  topgenes <-  rownames(head(dm[order(dm$P.Value),],n))
+  ss <- mx[which(rownames(mx) %in% topgenes),]
+  my_palette <- colorRampPalette(c("white","yellow", "orange", "red","darkred"))(n = 25)
+  colCols <- as.numeric(groups)
+  colCols <- gsub("0.6666667","purple",colCols)
+  colCols <- gsub("0.3333333","blacke",colCols)
+  colCols <- gsub("1.0000000","blue",colCols)
+  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.4,trace="none",cexCol=0.4,
+  ColSideColors=colCols ,  col=my_palette, main=name)
+}
+
+
 ```
 ## Data import
 
@@ -362,7 +377,7 @@ There are several differential contrasts that would be of interest to us in this
 * vitb12 levels(172)
 
     
-```{r,dm1A}
+```{r,dm1A,fig.height=8,fig.width=8}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
@@ -384,7 +399,7 @@ design <- model.matrix(~age+ sex +groups)
     dma1a <- dma[order(dma$P.Value),]
     head(dm)
     head(dma1a)
-dim(mxs)
+mxs
 dim(design)
 dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
@@ -392,14 +407,22 @@ dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects)
 
+colCols <- as.numeric(as.factor(groups))
+
+colCols
+
 make_volcano(dma1a,name = "placebo_vs_supplement_follow-up(sex,age)",mx=Mval_flt)
 rownames(dma1a)<-dma1a[,1]
+colnames(dma1a)
+head(dma1a)
 make_beeswarms(dm=dma1a ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 
 make_heatmap(dm=dma1a , name="placebo_vs_supplement_baseline(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
+
+
 ```{r,dm2A}
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
@@ -421,8 +444,10 @@ design <- model.matrix(~age+ sex +groups)
     dma2a <- dma[order(dma$P.Value),]
     head(dm)
     head(dma2a)
-dim(mxs)
+    dma2a
+str(mxs)
 dim(design)
+
 dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
@@ -432,6 +457,7 @@ head(confects)
 
 make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
 rownames(dma2a)<-dma2a[,1]
+str(dma2a)
 make_beeswarms(dm=dma2a ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 
@@ -439,7 +465,7 @@ make_heatmap(dm=dma2a , name="plb_supl_baseline" , mx=mxs ,n = 50, groups=groups
 make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
-```{r,dm3A}
+```{r,dm3A,fig.height=8,fig.width=8}
 samplesheet<-targets
 hcy<- samplesheet$characteristics_ch1.10
 hcy<-sapply(strsplit(hcy," "),"[[",5)
@@ -448,7 +474,9 @@ head(samplesheet)
 samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
 hcy
-groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
+groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
+groups<-as.integer(groups)/3
+
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
 
@@ -460,7 +488,7 @@ name="hcy_levels "
 head(myann)
 head(mx)
 
-design <- model.matrix(~ age+ sex + hcy)
+design <- model.matrix(~ age+ sex + groups)
 mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
 fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
@@ -476,11 +504,21 @@ fit.reduced <- lmFit(mxs,design)
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects)
 
+
+poplo<-as.numeric(groups)
+length(poplo)
+str(poplo)
+
+poplo
+
+table(poplo)
+
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
 make_beeswarms(dm=dma3a ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
-make_heatmap(dm=dma3a , name="hcy_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
+heatmap_c(dm=dma3a , name="hcy_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
+groups
 make_heatmap2(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
@@ -601,14 +639,14 @@ plot(euler(v1, shape = "ellipse"), quantities = TRUE)
 ```
 
 
-```{r,venn3]2,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+```{r,venn2,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
 v2 <- list("fol(up)" =dma4a_u, 
            "hcy(up)" =dma3a_u,
            "fol(dwn)" =dma4a_d,
            "hcy(dwn)" =dma3a_d)
 head(v2)
 str(v2)
-plot(euler(23, shape = "ellipse"), quantities = TRUE)
+plot(euler(v2, shape = "ellipse"), quantities = TRUE)
 
 ```
 
