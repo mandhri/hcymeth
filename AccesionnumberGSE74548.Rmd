@@ -72,6 +72,7 @@ ann450k <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 myann <- data.frame(ann450k[,c("UCSC_RefGene_Name","Regulatory_Feature_Group")])
 promoters <- grep("Prom",myann$Regulatory_Feature_Group)
 ```
+
 ## Loading functions
 
 These functions provide shortcuts to help with charts and other analysis. They will
@@ -86,25 +87,35 @@ myranks<-function(x) {
   return(y)
 }
 
-
+# heatmap for continuous data
 heatmap_c<-function(dm,name,mx,n, groups) {
+  my_palette <- colorRampPalette(c("blue", "white", "red"))(25)
   topgenes <-  rownames(head(dm[order(dm$P.Value),],n))
   ss <- mx[which(rownames(mx) %in% topgenes),]
-  my_palette <- colorRampPalette(c("white","yellow", "orange", "red","darkred"))(n = 25)
-  colCols <- as.numeric(groups)
-  colCols <- gsub("0.6666667","purple",colCols)
-  colCols <- gsub("0.3333333","blacke",colCols)
-  colCols <- gsub("1.0000000","blue",colCols)
-  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.4,trace="none",cexCol=0.4,
+  mycols <- colorRampPalette(c("white","yellow", "orange", "red","darkred"))(n = length(groups))
+  colCols <- mycols[order(groups)]
+  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.6,trace="none",cexCol=0.4,
   ColSideColors=colCols ,  col=my_palette, main=name)
 }
 
+# heatmap for continuous data - topconfects
+make_heatmap2_c <- function(confects,name,mx,n, groups) {
+  topgenes <-  head(confects$table$name,n)
+  my_palette <- colorRampPalette(c("blue", "white", "red"))(25)
+  ss <- mx[which(rownames(mx) %in% topgenes),]
+  mycols <- colorRampPalette(c("white","yellow", "orange", "red","darkred"))(n = length(groups))
+  colCols <- mycols[order(groups)]
+  heatmap.2(ss,scale="row",margin=c(10, 10),cexRow=0.6,trace="none",cexCol=0.4,
+  ColSideColors=colCols ,  col=my_palette, main=name)  
+}
 
 ```
+
 ## Data import
 
 Data will be imported from GEO data base under the accession number-GSE74548
 https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE74548
+
 ```{r,data}
 
 dir.create("GSE74548")
@@ -148,6 +159,7 @@ rgSet
 head(targets)
 
 ```
+
 ## Normalisation
 
 ```{r,norm,fig.cap="Figure 1. Normalisation of bead-array data with SWAN."}
@@ -157,6 +169,7 @@ par(mfrow=c(1,2), cex=0.8)
 densityByProbeType(mSet[,1], main = "Raw")
 densityByProbeType(mSetSw[,1], main = "SWAN")
 ```
+
 ## Filter probes
 
 Here we are running parallel analyses, both including and excluding sex chromosomes.
@@ -180,6 +193,7 @@ mSetFlt <- mSetSw[keep,]
 head(mSetFlt)
 dim(mSetFlt)
 ```
+
 ## Extracting Beta and M-values
 
 ```{r,beta_m_vals}
@@ -197,6 +211,7 @@ beta_flt <- getBeta(mSetFlt)
 ```
 
 ## sex chromosome diagnostic
+
 ```{r,sex chromosome diagnostic}
 cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
 cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
@@ -227,7 +242,9 @@ points(colMeans(mvxf),colMeans(mvyf),col="red")
 points(colMeans(mvxm),colMeans(mvym),col="blue")
 
 ```
+
 ## MDS analysis
+
 [Multidimensional scaling(https://en.wikipedia.org/wiki/Multidimensional_scaling)  plot is a method used
 to identify the major sources of variation in a dataset. In the MDS plots below, I will be plotting the 
 first two dimensions (principal components [PCs]), with each sample label coloured either by Hcy 
@@ -360,10 +377,8 @@ plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes i
 plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
 ```
 
-
-
-
 # Differential analysis
+
 There are several differential contrasts that would be of interest to us in this study:
 
 * placebo(43) vs supplement(44) follow-up
@@ -375,7 +390,6 @@ There are several differential contrasts that would be of interest to us in this
 * folate levels(172)
 
 * vitb12 levels(172)
-
     
 ```{r,dm1A,fig.height=8,fig.width=8}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
@@ -475,7 +489,7 @@ samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
 hcy
 groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
-groups<-as.integer(groups)/3
+groups<-as.integer(groups)
 
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
@@ -508,18 +522,16 @@ head(confects)
 poplo<-as.numeric(groups)
 length(poplo)
 str(poplo)
-
 poplo
-
 table(poplo)
 
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
 make_beeswarms(dm=dma3a ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
+
 heatmap_c(dm=dma3a , name="hcy_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
-groups
-make_heatmap2(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
+make_heatmap2_c(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
 
 ```{r,dm4A}    
@@ -564,6 +576,7 @@ make_beeswarms_confects(confects = confects ,name="folate_levels(sex,age)" , mx=
 make_heatmap(dm=dma4a , name="folate_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="folate_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
 ```
+
 ```{r,dm5A}
 samplesheet<-targets
 vitminb12<- samplesheet$characteristics_ch1.9
@@ -623,6 +636,7 @@ row.names(my_summary)<-c("placebo vs supplement follow-up(sex,age)",
 library(knitr)
 kable(my_summary)
 ```
+
 ## Venn diagrams of the differential methylated probes for each contrast
 
 First, we look at the similarity of dmps altered by fresh and frozen procedures. The overlap is very large. 
@@ -662,12 +676,6 @@ plot(euler(v3, shape = "ellipse"), quantities = TRUE)
 
 
 
-
-
-
-
-
-
 ```{r,venn4,fig.cap="Comparison of probes in related to hcy vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
 v4 <- list("hcy(up)" =dma3a_u, 
            "fol(up)" = dma4a_u ,
@@ -687,8 +695,8 @@ head(v5)
 plot(euler(v5, shape = "ellipse"), quantities = TRUE)
 ```
 
-
 ## Spearman correlations of each contrast
+
 While the above Venn diagrams are suggestive of similarity between contrasts, the best 
 way to assess this is with correlation analysis. I have chosen Spearman as based on
 the directional p-value ranking metrics
@@ -731,6 +739,7 @@ download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip",
 unzip("ReactomePathways.gmt.zip",overwrite = TRUE)
 genesets <- gmt_import("ReactomePathways.gmt")
 ```
+
 One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
 
 ```{r,1danalysis, fig.width = 8 ,fig.height = 8}
@@ -745,8 +754,6 @@ head(folate_levels_sex_age_mitch,50)
 vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex,age)_mitch")
 head(vitb12_levels_sex_age_mitch,50)
 ```
-
-
 
 # Run multi-dimensional enrichment analysis
 
@@ -777,37 +784,7 @@ rownames(hm)<-res$enrichment_result[1:40,1]
 heatmap.2(hm,trace ="none",scale = "none",dendrogram = "none",margins = c(7,25),cexCol = 0.7)
 ```
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+```{r,sessioninfo}
+sessionInfo()
+```
 
