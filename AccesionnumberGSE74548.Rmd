@@ -518,13 +518,6 @@ fit.reduced <- lmFit(mxs,design)
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects)
 
-
-poplo<-as.numeric(groups)
-length(poplo)
-str(poplo)
-poplo
-table(poplo)
-
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
 make_beeswarms(dm=dma3a ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
@@ -645,9 +638,9 @@ This indicates a high degree of similarity between the profiles.
 
 ```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex,age)", fig.width = 8 ,fig.height = 8}
 v1 <- list("plb v sup fl(up)" =dma1a_u , 
-           "hcy(up)" =dm3a_d ,
+           "hcy(up)" =dma3a_d ,
            "plb v sup fl(dwn)" =dma1a_d ,
-           "hcy(dwn)" =dm3a_d)
+           "hcy(dwn)" =dma3a_d)
 head(v1)
 plot(euler(v1, shape = "ellipse"), quantities = TRUE)
 ```
