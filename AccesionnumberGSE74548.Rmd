@@ -287,8 +287,8 @@ mydist_flt <- plotMDS(Mval_flt, labels=targets$geo_accession,col=colours,main="s
 
 ```{r,hist1}
 hcy<- targets$characteristics_ch1.10
-hcy
-hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<-strsplit(as.character(targets$characteristics_ch1.10), " ")
+hcy<-sapply(hcy, "[",5)
 hcy<-as.numeric(hcy)
 hist(hcy,breaks = 20,xlab = "hcy levels")
 hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
@@ -311,10 +311,10 @@ plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosom
 
 ```{r,hist2}
 age<- targets$characteristics_ch1.5
-age
-age<-sapply(strsplit(age," "),"[[",4)
+age<-strsplit(as.character(targets$characteristics_ch1.5), " ")
+age<-sapply(age , "[",4)
 age<-as.numeric(age)
-hist(age,breaks = 20,xlab = "hcy levels")
+hist(age,breaks = 20,xlab = "age levels")
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
 ```
@@ -333,8 +333,8 @@ plotMDS(mydist_flt,labels=targets$geo_accession,col=colours,main="sex chromosome
 
 ```{r,hist3}
 folate_levels<- targets$characteristics_ch1.8
-folate_levels
-folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
+vitb12_levels<-strsplit(as.character(targets$characteristics_ch1.8), " ")
+folate_levels<-sapply(folate_levels , "[",5)
 folate_levels<-as.numeric(folate_levels)
 hist(folate_levels,breaks = 20,xlab = "folate levels")
 folate_levels<-cut(folate_levels,breaks = c(0,20,35,50,70,90),labels = c("lowest","low","medium","high","highest"))
@@ -356,8 +356,8 @@ plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosom
 
 ```{r,hist4}
 vitb12_levels<- targets$characteristics_ch1.9
-vitb12_levels
-vitb12_levels<-sapply(strsplit(vitb12_levels," "),"[[",6)
+vitb12_levels<-strsplit(as.character(targets$characteristics_ch1.9), " ")
+vitb12_levels<-sapply(vitb12_levels , "[",6)
 vitb12_levels<-as.numeric(vitb12_levels)
 hist(vitb12_levels,breaks = 20,xlab = "vitb12 levels")
 vitb12_levels<-cut(vitb12_levels,breaks = c(100,300,500,700,900,1115),labels = c("lowest","low","medium","high","highest"))
