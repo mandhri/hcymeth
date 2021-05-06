@@ -333,7 +333,7 @@ plotMDS(mydist_flt,labels=targets$geo_accession,col=colours,main="sex chromosome
 
 ```{r,hist3}
 folate_levels<- targets$characteristics_ch1.8
-vitb12_levels<-strsplit(as.character(targets$characteristics_ch1.8), " ")
+folate_levels<-strsplit(as.character(targets$characteristics_ch1.8), " ")
 folate_levels<-sapply(folate_levels , "[",5)
 folate_levels<-as.numeric(folate_levels)
 hist(folate_levels,breaks = 20,xlab = "folate levels")
@@ -394,15 +394,14 @@ There are several differential contrasts that would be of interest to us in this
 ```{r,dm1A,fig.height=8,fig.width=8}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+sex
+age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
-age
+
+
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
 mx <-Mval_flt
 name="placebo_vs_supplement_follow-up"
-head(myann)
-head(samplesheet)
-
 design <- model.matrix(~age+ sex +groups)
     mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -413,8 +412,7 @@ design <- model.matrix(~age+ sex +groups)
     dma1a <- dma[order(dma$P.Value),]
     head(dm)
     head(dma1a)
-mxs
-dim(design)
+
 dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
@@ -422,8 +420,6 @@ confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects)
 
 colCols <- as.numeric(as.factor(groups))
-
-colCols
 
 make_volcano(dma1a,name = "placebo_vs_supplement_follow-up(sex,age)",mx=Mval_flt)
 rownames(dma1a)<-dma1a[,1]
@@ -440,7 +436,7 @@ make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age
 ```{r,dm2A}
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
@@ -459,8 +455,6 @@ design <- model.matrix(~age+ sex +groups)
     head(dm)
     head(dma2a)
     dma2a
-str(mxs)
-dim(design)
 
 dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
@@ -482,21 +476,24 @@ make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age
 ```{r,dm3A,fig.height=8,fig.width=8}
 samplesheet<-targets
 hcy<- samplesheet$characteristics_ch1.10
-hcy<-sapply(strsplit(hcy," "),"[[",5)
+hcy<-strsplit(as.character(samplesheet$characteristics_ch1.10), " ")
+
+hcy<-sapply(hcy, "[",5)
+
 hcy<- as.numeric(hcy)
 head(samplesheet)
 samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
-hcy
+
 groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
 groups<-as.integer(groups)
 
 sex <- factor(samplesheet$`gender:ch1`)
+class(sex)
 head(samplesheet)
 
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
-age
 mx <-Mval_flt
 name="hcy_levels "
 head(myann)
@@ -530,20 +527,22 @@ make_heatmap2_c(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50,
 ```{r,dm4A}    
 samplesheet<-targets
 folate_levels<- samplesheet$characteristics_ch1.8
-folate_levels<-sapply(strsplit(folate_levels," "),"[[",5)
-folate_levels<- as.numeric(folate_levels)
-head(samplesheet)
+
+folate_levels<-strsplit(as.character(samplesheet$characteristics_ch1.8), " ")
+folate_levels<-sapply(folate_levels , "[",5)
+folate_levels<-as.numeric(folate_levels)
 
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
-dim(sex)
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+class(sex)
+age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
-age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
 name="folate_levels"
 head(myann)
+age<-samplesheet$`age at baseline:ch1`
+age<-as.numeric(age)
 
 design <- model.matrix(~ age+ sex + folate_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
@@ -572,24 +571,23 @@ make_heatmap2(confects = confects , name="folate_levels(sex,age)",mx=mxs ,n = 50
 
 ```{r,dm5A}
 samplesheet<-targets
-vitminb12<- samplesheet$characteristics_ch1.9
-vitminb12<-sapply(strsplit(vitminb12," "),"[[",6)
-vitminb12<- as.numeric(vitminb12)
-head(samplesheet)
+vitb12_levels<- targets$characteristics_ch1.9
+vitb12_levels<-strsplit(as.character(samplesheet$characteristics_ch1.9), " ")
+vitb12_levels<-sapply(vitb12_levels , "[",6)
+vitb12_levels<-as.numeric(vitb12_levels)
 
 sex <- factor(samplesheet$`gender:ch1`)
 head(samplesheet)
 
-age<-sapply(strsplit(samplesheet$characteristics_ch1.5," "),"[[",4)
+age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
-age
 
 mx <-Mval_flt
 name="vitmin_b12_levels"
 head(myann)
 
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
-design <- model.matrix(~ age+ sex + vitminb12)
+design <- model.matrix(~ age+ sex + vitb12_levels)
     mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
     fit.reduced <- eBayes(fit.reduced)
@@ -761,8 +759,8 @@ xxll$genenames=NULL
 colnames(xxll) <- names(xl)
 head(xxll)
 capture.output(
-        res <- mitch_calc(xxll,genesets = genesets,priority = "significance")
-        , file = "/dev/null", append = FALSE,
+        res <- mitch_calc(xxll,genesets = genesets,priority = "significance"),
+        file = "/dev/null", append = FALSE,
         type = c("output", "message"), split = FALSE)
 head(res$enrichment_result,20)
 unlink("estill_multi_mitch.pdf")
@@ -775,6 +773,7 @@ length(which(res$enrichment_result$p.adjustMANOVA<0.05))
 hm<-as.matrix(res$enrichment_result[1:40,4:8])
 rownames(hm)<-res$enrichment_result[1:40,1]
 heatmap.2(hm,trace ="none",scale = "none",dendrogram = "none",margins = c(7,25),cexCol = 0.7)
+
 ```
 
 ```{r,sessioninfo}
