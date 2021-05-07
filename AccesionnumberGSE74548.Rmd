@@ -749,8 +749,7 @@ head(vitb12_levels_sex_age_mitch,50)
 # Run multi-dimensional enrichment analysis
 
 ```{r,mitch, fig.width = 8 ,fig.height = 8}
-xl <- list("placebo vs supplement follow-up(sex,age)"=dma1a,"placebo vs supplement Baseline(sex,age)"=dma2a, 
-"hcy_levels(sex_age)"=dma3a,"folate_levels(sex_age)"=dma4a,"vitb12_levels(sex_age)"= dma5a)
+xl <- list("psf"=dma1a,"psb"=dma2a,"hcy"=dma3a,"folate"=dma4a,"vitb12"= dma5a)
 xxl <- lapply(X = xl,run_mitch_rank)  
 xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
 xxll <- join_all(xxxl,by="genenames")
