@@ -453,7 +453,6 @@ dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects)
 
 make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
 rownames(dma2a)<-dma2a[,1]
