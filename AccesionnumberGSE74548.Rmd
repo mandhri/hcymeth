@@ -200,7 +200,7 @@ meth <- getMeth(mSetSw)
 unmeth <- getUnmeth(mSetSw)
 Mval <- log2((meth + 100)/(unmeth + 100))
 beta <- getBeta(mSetSw)
-str(Mvalm)
+
 # exclude sex chromosomes
 meth <- getMeth(mSetFlt)
 unmeth <- getUnmeth(mSetFlt)
@@ -211,12 +211,14 @@ beta_flt <- getBeta(mSetFlt)
 ## sex chromosome diagnostic
 
 ```{r,sex chromosome diagnostic,fig.height=8,fig.width=8}
+colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
+colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
+
 cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
 cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
-str(cgy)
+
 mvx<-Mval[which(rownames(Mval) %in% cgx),]
 mvy<-Mval[which(rownames(Mval) %in% cgy),]
-
 
 targets_m<-rownames(subset(targets,`gender:ch1`=="male"))
 str(targets_m)
@@ -385,7 +387,6 @@ There are several differential contrasts that would be of interest to us in this
 ```{r,dm1A,fig.height=8,fig.width=8}
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
-sex
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 
