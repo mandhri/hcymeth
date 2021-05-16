@@ -259,27 +259,6 @@ As we can see in Figure 2, the main source of variation is what is shown in PC1,
 extent on the other dimensions. Interestingly, excluding sex chromosomes does not seem to change the 
 relative contributions of PCs very much.
 
-```{r,scree,fig.cap="Figure 2. Screeplot shows contribution of top principal components to the overall variation in the experiment."}
-colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
-colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
-dim(Mval)
-dim(Mval_flt)
-par(mfrow=c(2,1))  
-args(myscree)
-
-myscree(Mval,main="incl sex chr")
-
-myscree(Mval_flt,main="excl sex chr")
-mx<-Mval_flt
-pc <- princomp(mx)$sdev
-  pcp <- pc/sum(pc)*100
-  pcp <- pcp[1:10]
-  barplot(pcp,cex.names = 1,las=2,ylim=c(0,60),
-      ylab="percent (%) variance explained")
-  text((0.5:length(pcp)*1.2),pcp,label=signif(pcp,3),pos=3,cex=0.8)
-
-```
-
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 head(targets)
