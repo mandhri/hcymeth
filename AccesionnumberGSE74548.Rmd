@@ -51,18 +51,22 @@ These packackes will help us to perform vital steps such as normalisation, filte
 differential analysis, etc, and provide information about the array probe annotaions.
 
 ```{r,packages}
+
 suppressPackageStartupMessages({
-    library("plyr")
-    library("R.utils")
     library("missMethyl")
+    library("GEOquery")
     library("limma")
     library("topconfects")
     library("minfi")
     library("IlluminaHumanMethylation450kmanifest")
-    library("RColorBrewer")
     library("IlluminaHumanMethylation450kanno.ilmn12.hg19")
-    library("eulerr")
+    library("DMRcate")
+
+    library("forestplot")
+    library("RColorBrewer")
     library("plyr")
+    library("R.utils")
+    library("eulerr")
     library("gplots")
     library("reshape2")
     library("beeswarm")
@@ -71,6 +75,7 @@ suppressPackageStartupMessages({
 ann450k <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 myann <- data.frame(ann450k[,c("UCSC_RefGene_Name","Regulatory_Feature_Group")])
 promoters <- grep("Prom",myann$Regulatory_Feature_Group)
+
 ```
 
 ## Loading functions
@@ -79,6 +84,7 @@ These functions provide shortcuts to help with charts and other analysis. They w
 eventually be shoved into another Rscript or package but can stay here for now.
 
 ```{r,load_functions}
+
 source("https://raw.githubusercontent.com/markziemann/ART_methylation/master/meth_functions.R")
 myranks<-function(x) {
   x$score <- sign(x$logFC)/log10(x$adj.P.Val)
@@ -156,16 +162,19 @@ gsm <-gsub("GSE74548/IDAT/","",gsm)
 targets$Basename<- mybase[which(gsm %in% rownames(targets))]
 rgSet <- read.metharray.exp(targets = targets)
 targets[1:6,1:5]
+
 ```
 
 ## Normalisation
 
 ```{r,norm,fig.cap="Figure 1. Normalisation of bead-array data with SWAN."}
+
 mSet <- preprocessRaw(rgSet)
 mSetSw <- SWAN(mSet,verbose=FALSE)
 par(mfrow=c(1,2), cex=0.8)
 densityByProbeType(mSet[,1], main = "Raw")
 densityByProbeType(mSetSw[,1], main = "SWAN")
+
 ```
 
 ## Filter probes
@@ -173,6 +182,7 @@ densityByProbeType(mSetSw[,1], main = "SWAN")
 Here we are running parallel analyses, both including and excluding sex chromosomes.
 
 ```{r,filterprobes}
+
 # include sex chromosomes
 detP <- detectionP(rgSet)
 keep <- rowSums(detP < 0.01) == ncol(rgSet)
@@ -190,11 +200,13 @@ keep <- !(featureNames(mSetSw) %in% ann450k$Name[ann450k$chr %in% c("chrX","chrY
 mSetFlt <- mSetSw[keep,]
 head(mSetFlt)
 dim(mSetFlt)
+
 ```
 
 ## Extracting Beta and M-values
 
 ```{r,beta_m_vals}
+
 # include sex chromosomes
 meth <- getMeth(mSetSw)
 unmeth <- getUnmeth(mSetSw)
@@ -206,11 +218,13 @@ meth <- getMeth(mSetFlt)
 unmeth <- getUnmeth(mSetFlt)
 Mval_flt <- log2((meth + 100)/(unmeth + 100))
 beta_flt <- getBeta(mSetFlt)
+
 ```
 
 ## sex chromosome diagnostic
 
 ```{r,sex chromosome diagnostic,fig.height=8,fig.width=8}
+
 colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
 colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
 
@@ -263,6 +277,7 @@ relative contributions of PCs very much.
 
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
+
 head(targets)
 dim(targets)
 targets$group <- factor(targets$source_name_ch1)
@@ -276,9 +291,11 @@ plot(1,axes = FALSE,xlab="",ylab="",main="treatment groups")
 legend("center",legend=levels(targets$group),pch=16,cex=1.2,col=colour_palette)
 mydist <- plotMDS(Mval, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
 mydist_flt <- plotMDS(Mval_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
+
 ```
 
 ```{r,hist1}
+
 hcy<- targets$characteristics_ch1.10
 hcy<-strsplit(as.character(targets$characteristics_ch1.10), " ")
 hcy<-sapply(hcy, "[",5)
@@ -286,9 +303,11 @@ hcy<-as.numeric(hcy)
 hist(hcy,breaks = 20,xlab = "hcy levels")
 hcy_groups<-cut(hcy,breaks = c(0,10,16,30),labels = c("low","medium","high"))
 table(hcy_groups)
+
 ```
 
 ```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels"}
+
 head(targets)
 targets$sex <- factor(targets$`gender:ch1`)
 targets$hcy_groups <- hcy_groups
@@ -300,9 +319,11 @@ plot(1,axes = FALSE,xlab="",ylab="",main="hcy levels")
 legend("center",legend=levels(hcy_groups),pch=16,cex=1.2,col=colour_palette)
 plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
+
 ```
 
 ```{r,hist2}
+
 age<- targets$characteristics_ch1.5
 age<-strsplit(as.character(targets$characteristics_ch1.5), " ")
 age<-sapply(age , "[",4)
@@ -310,9 +331,11 @@ age<-as.numeric(age)
 hist(age,breaks = 20,xlab = "age levels")
 age_groups<-cut(age,breaks = c(0,65,70,75),labels = c("old","older","oldest"))
 table(age_groups)
+
 ```
 
 ```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age"}
+
 head(targets)
 targets$age <- factor(age_groups)
 sample_group <-factor(age_groups)
@@ -322,9 +345,11 @@ plot(1,axes = FALSE,xlab="",ylab="",main="age")
 legend("center",legend=levels(age_groups),pch=16,cex=1.2,col=colour_palette)
 plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt,labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
+
 ```
 
 ```{r,hist3}
+
 folate_levels<- targets$characteristics_ch1.8
 folate_levels<-strsplit(as.character(targets$characteristics_ch1.8), " ")
 folate_levels<-sapply(folate_levels , "[",5)
@@ -333,9 +358,11 @@ hist(folate_levels,breaks = 20,xlab = "folate levels")
 folate_levels<-cut(folate_levels,breaks = c(0,20,35,50,70,90),labels = c("lowest","low","medium","high","highest"))
 table(folate_levels)
 folate_levels
+
 ```
 
 ```{r,mds4,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by folate levels"}
+
 targets$folate_levels <- folate_levels
 sample_group<-folate_levels
 
@@ -345,9 +372,11 @@ plot(1,axes = FALSE,xlab="",ylab="",main="Folate levels")
 legend("center",legend=levels(targets$folate_levels),pch=16,cex=1.2,col=colour_palette)
 plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
+
 ```
 
 ```{r,hist4}
+
 vitb12_levels<- targets$characteristics_ch1.9
 vitb12_levels<-strsplit(as.character(targets$characteristics_ch1.9), " ")
 vitb12_levels<-sapply(vitb12_levels , "[",6)
@@ -356,9 +385,11 @@ hist(vitb12_levels,breaks = 20,xlab = "vitb12 levels")
 vitb12_levels<-cut(vitb12_levels,breaks = c(100,300,500,700,900,1115),labels = c("lowest","low","medium","high","highest"))
 table(vitb12_levels)
 vitb12_levels
+
 ```
 
 ```{r,mds5,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by vitaminb12 levels"}
+
 targets$vitb12_levels <- vitb12_levels
 sample_group<-vitb12_levels
 
@@ -368,6 +399,7 @@ plot(1,axes = FALSE,xlab="",ylab="",main="vitb12 levels")
 legend("center",legend=levels(targets$vitb12_levels),pch=16,cex=1.2,col=colour_palette)
 plotMDS(mydist, labels=targets$geo_accession,col=colours,main="sex chromosomes included")
 plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosomes excluded")
+
 ```
 
 # Differential analysis
@@ -385,11 +417,11 @@ There are several differential contrasts that would be of interest to us in this
 * vitb12 levels(172)
     
 ```{r,dm1A,fig.height=8,fig.width=8}
+
 samplesheet<-targets[grep("follow-up",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
-
 
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, follow-up","Buffy coat, FA/vB12, follow-up"))
 mx <-Mval_flt
@@ -402,30 +434,28 @@ design <- model.matrix(~age+ sex +groups)
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma1a <- dma[order(dma$P.Value),]
-    head(dm)
-    head(dma1a)
+    head(dma1a, 50) %>% kbl() %>% kable_paper("hover", full_width = F) 
 
 dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects)
+head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 colCols <- as.numeric(as.factor(groups))
 
 make_volcano(dma1a,name = "placebo_vs_supplement_follow-up(sex,age)",mx=Mval_flt)
 rownames(dma1a)<-dma1a[,1]
-colnames(dma1a)
-head(dma1a)
 make_beeswarms(dm=dma1a ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_follow-up(sex,age)" , mx=beta_flt , groups=groups , n= 15)
-
 make_heatmap(dm=dma1a , name="placebo_vs_supplement_baseline(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
+
 ```
 
 
 ```{r,dm2A}
+
 samplesheet<-targets[grep("baseline",targets$source_name_ch1),]
 sex <- factor(samplesheet$`gender:ch1`)
 age<-samplesheet$`age at baseline:ch1`
@@ -444,27 +474,25 @@ design <- model.matrix(~age+ sex +groups)
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma2a <- dma[order(dma$P.Value),]
-    head(dm)
-    head(dma2a)
-    dma2a
+    head(dma2a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
-
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
+head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
 rownames(dma2a)<-dma2a[,1]
-str(dma2a)
 make_beeswarms(dm=dma2a ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
-
 make_heatmap(dm=dma2a , name="plb_supl_baseline" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
+
 ```
 
 ```{r,dm3A,fig.height=8,fig.width=8}
+
 samplesheet<-targets
 hcy<- samplesheet$characteristics_ch1.10
 hcy<-strsplit(as.character(samplesheet$characteristics_ch1.10), " ")
@@ -498,13 +526,12 @@ fit.reduced <- lmFit(mxs,design)
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma3a <- dma[order(dma$P.Value),]
-    head(dm)
-    head(dma3a)
+    head(dma3a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
  dma3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
  dma3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0)) 
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects)
+head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
@@ -513,9 +540,11 @@ make_beeswarms_confects(confects = confects ,name="hcy_levels(sex,age)" , mx=bet
 
 heatmap_c(dm=dma3a , name="hcy_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2_c(confects = confects , name="hcy_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
+
 ```
 
 ```{r,dm4A}    
+
 samplesheet<-targets
 folate_levels<- samplesheet$characteristics_ch1.8
 
@@ -543,24 +572,24 @@ design <- model.matrix(~ age+ sex + folate_levels)
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma4a <- dma[order(dma$P.Value),]
-    head(dm)
-    head(dma4a)
+    head(dma4a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
     dma4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
     dma4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects)
+head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma4a,name = "folate_levels(sex,age)",mx=Mval_flt)
 rownames(dma4a)<-dma4a[,1]
 make_beeswarms(dm=dma4a ,name="folate_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="folate_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
-
 make_heatmap(dm=dma4a , name="folate_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="folate_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
+
 ```
 
 ```{r,dm5A}
+
 samplesheet<-targets
 vitb12_levels<- targets$characteristics_ch1.9
 vitb12_levels<-strsplit(as.character(samplesheet$characteristics_ch1.9), " ")
@@ -586,23 +615,21 @@ design <- model.matrix(~ age+ sex + vitb12_levels)
     dm <- topTable(fit.reduced,coef=4, number = Inf)
     dma <- merge(myann,dm,by=0)
     dma5a <- dma[order(dma$P.Value),]
-    head(dm)
-    head(dma5a)
+    head(dma5a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
     dma5a_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
     dma5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects)
+head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma5a,name = "vitmin_b12_levels(sex,age)",mx=Mval_flt)
 rownames(dma5a)<-dma5a[,1]
 make_beeswarms(dm=dma5a ,name="vitmin_b12_levels" , mx=beta_flt , groups=groups , n= 15)
 make_beeswarms_confects(confects = confects ,name="vitmin_b12_levels" , mx=beta_flt , groups=groups , n= 15)
-
 make_heatmap(dm=dma5a , name="vitmin_b12_levels(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="vitmin_b12_levels(sex,age)",mx=mxs ,n = 50, groups=groups)
-```
 
+```
 
 
 ```{r,summarised dms}                                                        
@@ -617,6 +644,7 @@ row.names(my_summary)<-c("placebo vs supplement follow-up(sex,age)",
                          "vitb12 levels(sex,age)")
 library(knitr)
 kable(my_summary)
+
 ```
 
 ## Venn diagrams of the differential methylated probes for each contrast
@@ -626,16 +654,19 @@ This indicates a high degree of similarity between the profiles.
 
 
 ```{r,venn1,fig.cap="Comparison of probes in related to placebo vs supplement in follow-up(sex,age)", fig.width = 8 ,fig.height = 8}
+
 v1 <- list("plb v sup fl(up)" =dma1a_u , 
            "hcy(up)" =dma3a_d ,
            "plb v sup fl(dwn)" =dma1a_d ,
            "hcy(dwn)" =dma3a_d)
 head(v1)
 plot(euler(v1, shape = "ellipse"), quantities = TRUE)
+
 ```
 
 
 ```{r,venn2,fig.cap="Comparison of probes in related to hcy(sex) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+
 v2 <- list("fol(up)" =dma4a_u, 
            "hcy(up)" =dma3a_u,
            "fol(dwn)" =dma4a_d,
@@ -648,33 +679,39 @@ plot(euler(v2, shape = "ellipse"), quantities = TRUE)
 
 
 ```{r,venn3,fig.cap="Comparison of probes in related to hcy(age) vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+
 v3 <- list("plb v sup fl(up)" =dma1a_u, 
            "fol(up)" = dma4a_u ,
            "plb v sup fl(dwn)" =dma1a_d ,
            "fol(dwn)" =dma4a_d)
 head(v3)
 plot(euler(v3, shape = "ellipse"), quantities = TRUE)
+
 ```
 
 
 
 ```{r,venn4,fig.cap="Comparison of probes in related to hcy vs folate level(sex,age)", fig.width = 8 ,fig.height = 8}
+
 v4 <- list("hcy(up)" =dma3a_u, 
            "fol(up)" = dma4a_u ,
            "hcy(dwn)" =dma3a_d ,
            "fol(dwn)" =dma4a_d)
 head(v4)
 plot(euler(v4, shape = "ellipse"), quantities = TRUE)
+
 ```
 
 
 ```{r,venn5,fig.cap="Comparison of probes in related to hcy vs vitb12 level(sex,age)", fig.width = 8 ,fig.height = 8}
+
 v5<- list("hcy(up)" =dma3a_u, 
            "vitb12(up)" = dma5a_u ,
            "hcy(dwn)" =dma3a_d ,
            "vitb12(dwn)" =dma5a_d)
 head(v5)
 plot(euler(v5, shape = "ellipse"), quantities = TRUE)
+
 ```
 
 ## Spearman correlations of each contrast
@@ -684,6 +721,7 @@ way to assess this is with correlation analysis. I have chosen Spearman as based
 the directional p-value ranking metrics
 
 ```{r,spearman, fig.width = 8 ,fig.height = 8}
+
 mycontrasts <- list("placebo_vs_supplement-follow-up(sex,age)"=dma1a,"placebo vs supplement Baseline(sex,age)"=dma2a,"hcy levels(sex,age)"=dma3a,"folate levels(sex,age)"=dma4a,"vitb12 levels(sex,age)"=dma5a)
 lapply(mycontrasts, head)
 myrnks<-lapply(X = mycontrasts, FUN = myranks)
@@ -699,6 +737,7 @@ my_palette <- colorRampPalette(c("darkred","red", "orange", "yellow","white"))(n
 heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.8,
     col=my_palette,main="Spearman correlations")
 mycors
+
 ```
 
 ## Enrichment analysis
@@ -708,23 +747,30 @@ average promoter methylation change as an indicator of gene activity.
 Enrichment will be tested with the mitch package.
 
 dma1a (placebo_vs_supplement_followup(sex,age))
+
 dma2ba (placebo_vs_supplement_Baseline(sex,age))
+
 dma3a (hcy_levels(sex,age))
+
 dma4a (folate_levels(sex,age))
+
 dma5a (vitb12 levels(sex,age))
 
 ```{r,genesets, fig.width = 8 ,fig.height = 8}
+
 library("mitch")
 # gene sets
 download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip", 
     destfile="ReactomePathways.gmt.zip")
 unzip("ReactomePathways.gmt.zip",overwrite = TRUE)
 genesets <- gmt_import("ReactomePathways.gmt")
+
 ```
 
 One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
 
 ```{r,1danalysis, fig.width = 8 ,fig.height = 8}
+
 placebo_vs_supplement_followup_sex_age_mitch <- run_mitch_1d(dma= dma1a, name="placebo_vs_supplement_followup(sex,age)_mitch")
 head(placebo_vs_supplement_followup_sex_age_mitch,50)
 placebo_vs_supplement_Baseline_sex_age_mitch <- run_mitch_1d(dma= dma2a, name="placebo_vs_supplement_Baseline_(sex,age)_mitch")
@@ -735,11 +781,13 @@ folate_levels_sex_age_mitch <- run_mitch_1d(dma= dma4a, name="folate_levels(sex,
 head(folate_levels_sex_age_mitch,50)
 vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex,age)_mitch")
 head(vitb12_levels_sex_age_mitch,50)
+
 ```
 
 # Run multi-dimensional enrichment analysis
 
 ```{r,mitch, fig.width = 8 ,fig.height = 8}
+
 xl <- list("psf"=dma1a,"psb"=dma2a,"hcy"=dma3a,"folate"=dma4a,"vitb12"= dma5a)
 xxl <- lapply(X = xl,run_mitch_rank)  
 xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
@@ -766,7 +814,11 @@ heatmap.2(hm,trace ="none",scale = "none",dendrogram = "none",margins = c(7,25),
 
 ```
 
+## Session information
+
 ```{r,sessioninfo}
+
 sessionInfo()
+
 ```
 
