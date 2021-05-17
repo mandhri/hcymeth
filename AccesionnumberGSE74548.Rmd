@@ -444,7 +444,7 @@ dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 colCols <- as.numeric(as.factor(groups))
 
@@ -484,7 +484,7 @@ dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
 rownames(dma2a)<-dma2a[,1]
@@ -535,7 +535,7 @@ fit.reduced <- lmFit(mxs,design)
  dma3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0)) 
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
@@ -581,7 +581,7 @@ design <- model.matrix(~ age+ sex + folate_levels)
     dma4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma4a,name = "folate_levels(sex,age)",mx=Mval_flt)
 rownames(dma4a)<-dma4a[,1]
@@ -624,7 +624,7 @@ design <- model.matrix(~ age+ sex + vitb12_levels)
     dma5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
-head(confects, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 make_volcano(dma5a,name = "vitmin_b12_levels(sex,age)",mx=Mval_flt)
 rownames(dma5a)<-dma5a[,1]
