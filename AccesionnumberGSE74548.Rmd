@@ -62,6 +62,7 @@ suppressPackageStartupMessages({
     library("IlluminaHumanMethylation450kanno.ilmn12.hg19")
     library("DMRcate")
 
+    library("kableExtra")
     library("forestplot")
     library("RColorBrewer")
     library("plyr")
@@ -147,8 +148,11 @@ if ( !dir.exists("GSE74548/IDAT") ) {
 baseDir <- "GSE74548"
 R.utils::gunzip("GSE74548/IDAT/GPL13534_HumanMethylation450_15017482_v.1.1.csv.gz",overwrite=TRUE, remove=FALSE)
 targets <- read.metharray.sheet(baseDir,pattern="csv")
-download.file("https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz",destfile = "GSE74548_series_matrix.txt.gz")
 
+if (! file.exists("GSE74548_series_matrix.txt.gz") ) { 
+  URL="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz"
+  download.file(URL,destfile = "GSE74548_series_matrix.txt.gz")
+}
 gse<- getGEO(filename = "GSE74548_series_matrix.txt.gz")
 
 targets <- pData(phenoData(gse))
