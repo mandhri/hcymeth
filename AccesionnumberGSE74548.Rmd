@@ -1,11 +1,9 @@
 ---
 title: "GSE74548"
 author: "hcy_meth meta-analysis group"
-date: "21/07/2020"
+date: "`r Sys.Date()`"
 output:
   html_document:
-    toc: yes
-  pdf_document:
     toc: yes
     toc_float: true
 theme: cosmo
@@ -204,7 +202,7 @@ mSetSw <- mSetSw_nosnp
 # exclude sex chromosomes
 keep <- !(featureNames(mSetSw) %in% ann450k$Name[ann450k$chr %in% c("chrX","chrY")])
 mSetFlt <- mSetSw[keep,]
-head(mSetFlt)
+mSetFlt[1:6,1:5]
 dim(mSetFlt)
 
 ```
@@ -247,10 +245,8 @@ targets_f<-rownames(subset(targets,`gender:ch1`=="female"))
 Mvalm<-Mval[,colnames(Mval) %in% targets_m]
 Mvalf<-Mval[,colnames(Mval) %in% targets_f]
 
-
 mvxm<-Mvalm[which(rownames(Mvalm) %in% cgx),]
 mvym<-Mvalm[which(rownames(Mvalm) %in% cgy),]
-
 
 mvxf<-Mvalf[which(rownames(Mvalf) %in% cgx),]
 mvyf<-Mvalf[which(rownames(Mvalf) %in% cgy),]
@@ -284,7 +280,7 @@ relative contributions of PCs very much.
 
 ```{r,mds1,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by targets groups"}
 
-head(targets)
+targets[1:6,1:5]
 dim(targets)
 targets$group <- factor(targets$source_name_ch1)
 sample_group<-factor(targets$group)
@@ -314,7 +310,7 @@ table(hcy_groups)
 
 ```{r,mds2,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by homocysteine levels"}
 
-head(targets)
+targets[1:6,1:5]
 targets$sex <- factor(targets$`gender:ch1`)
 targets$hcy_groups <- hcy_groups
 sample_group<-hcy_groups
@@ -470,8 +466,6 @@ age
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
 name="placebo_vs_supplement_baseline"
-head(myann)
-head(samplesheet)
 design <- model.matrix(~age+ sex +groups)
     mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
     fit.reduced <- lmFit(mxs,design)
@@ -506,7 +500,6 @@ hcy<-strsplit(as.character(samplesheet$characteristics_ch1.10), " ")
 hcy<-sapply(hcy, "[",5)
 
 hcy<- as.numeric(hcy)
-head(samplesheet)
 samplesheet<-samplesheet[which(!is.na(hcy)),]
 hcy<-hcy[which(!is.na(hcy))]
 
@@ -515,14 +508,11 @@ groups<-as.integer(groups)
 
 sex <- factor(samplesheet$`gender:ch1`)
 class(sex)
-head(samplesheet)
 
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 mx <-Mval_flt
 name="hcy_levels "
-head(myann)
-head(mx)
 
 design <- model.matrix(~ age+ sex + groups)
 mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
@@ -559,14 +549,11 @@ folate_levels<-sapply(folate_levels , "[",5)
 folate_levels<-as.numeric(folate_levels)
 
 sex <- factor(samplesheet$`gender:ch1`)
-head(samplesheet)
-class(sex)
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 mx <-Mval_flt
 name="folate_levels"
-head(myann)
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 
@@ -603,14 +590,12 @@ vitb12_levels<-sapply(vitb12_levels , "[",6)
 vitb12_levels<-as.numeric(vitb12_levels)
 
 sex <- factor(samplesheet$`gender:ch1`)
-head(samplesheet)
 
 age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 
 mx <-Mval_flt
 name="vitmin_b12_levels"
-head(myann)
 
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 design <- model.matrix(~ age+ sex + vitb12_levels)
@@ -742,7 +727,6 @@ mycors <- cor(df,method = "spearman")
 my_palette <- colorRampPalette(c("darkred","red", "orange", "yellow","white"))(n = 25)
 heatmap.2(mycors,scale="none",margin=c(10, 10),cexRow=0.8,trace="none",cexCol=0.8,
     col=my_palette,main="Spearman correlations")
-mycors
 
 ```
 

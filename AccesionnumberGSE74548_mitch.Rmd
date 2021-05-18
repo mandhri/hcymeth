@@ -1,12 +1,11 @@
 ---
 title: "GSE74548"
 author: "hcy_meth meta-analysis group"
-date: "21/07/2020"
+date: "`r Sys.Date()`"
 output:
   html_document:
     toc: yes
-  pdf_document:
-    toc: yes
+    toc_float: true
 theme: cosmo
 ---
 
