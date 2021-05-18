@@ -7,6 +7,7 @@ output:
     toc: yes
   pdf_document:
     toc: yes
+    toc_float: true
 theme: cosmo
 ---
 
@@ -61,6 +62,7 @@ suppressPackageStartupMessages({
     library("IlluminaHumanMethylation450kmanifest")
     library("IlluminaHumanMethylation450kanno.ilmn12.hg19")
     library("DMRcate")
+    library("mitch")
 
     library("kableExtra")
     library("forestplot")
@@ -744,77 +746,15 @@ mycors
 
 ```
 
+
 ## Enrichment analysis
 
-We will be using the recently published package mitch to perform enrichment analysis, using
-average promoter methylation change as an indicator of gene activity.
-Enrichment will be tested with the mitch package.
+Will be done in another Rmd file to reduce the size of the final HTML.
+The next Rmd file is called AccesionnumberGSE74548_mitch.Rmd
 
-dma1a (placebo_vs_supplement_followup(sex,age))
+```{r,save}
 
-dma2ba (placebo_vs_supplement_Baseline(sex,age))
-
-dma3a (hcy_levels(sex,age))
-
-dma4a (folate_levels(sex,age))
-
-dma5a (vitb12 levels(sex,age))
-
-```{r,genesets, fig.width = 8 ,fig.height = 8}
-
-library("mitch")
-# gene sets
-download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip", 
-    destfile="ReactomePathways.gmt.zip")
-unzip("ReactomePathways.gmt.zip",overwrite = TRUE)
-genesets <- gmt_import("ReactomePathways.gmt")
-
-```
-
-One dimensional enrichment analysis with REACTOME gene sets using average promoter methylation t-statistic.
-
-```{r,1danalysis, fig.width = 8 ,fig.height = 8}
-
-placebo_vs_supplement_followup_sex_age_mitch <- run_mitch_1d(dma= dma1a, name="placebo_vs_supplement_followup(sex,age)_mitch")
-head(placebo_vs_supplement_followup_sex_age_mitch,50)
-placebo_vs_supplement_Baseline_sex_age_mitch <- run_mitch_1d(dma= dma2a, name="placebo_vs_supplement_Baseline_(sex,age)_mitch")
-head(placebo_vs_supplement_Baseline_sex_age_mitch,50)
-hcy_levels_sex_age_mitch <- run_mitch_1d(dma= dma3a, name="hcy_levels(sex,age)_mitch")
-head(hcy_levels_sex_age_mitch,50)
-folate_levels_sex_age_mitch <- run_mitch_1d(dma= dma4a, name="folate_levels(sex,age)_mitch")
-head(folate_levels_sex_age_mitch,50)
-vitb12_levels_sex_age_mitch <- run_mitch_1d(dma= dma5a, name="vitb12 levels(sex,age)_mitch")
-head(vitb12_levels_sex_age_mitch,50)
-
-```
-
-# Run multi-dimensional enrichment analysis
-
-```{r,mitch, fig.width = 8 ,fig.height = 8}
-
-xl <- list("psf"=dma1a,"psb"=dma2a,"hcy"=dma3a,"folate"=dma4a,"vitb12"= dma5a)
-xxl <- lapply(X = xl,run_mitch_rank)  
-xxxl <- lapply(xxl,function(xxl) { xxl$genenames <- rownames(xxl) ; xxl} )
-xxll <- join_all(xxxl,by="genenames")
-rownames(xxll) <- xxll$genenames
-xxll$genenames=NULL
-colnames(xxll) <- names(xl)
-head(xxll)
-capture.output(
-        res <- mitch_calc(xxll,genesets = genesets,priority = "significance"),
-        file = "/dev/null", append = FALSE,
-        type = c("output", "message"), split = FALSE)
-head(res$enrichment_result,20)
-unlink("estill_multi_mitch.pdf")
-     capture.output(
-        mitch_plots(res,outfile="estill_multi_mitch.pdf")
-        , file = "/dev/null", append = FALSE,
-        type = c("output", "message"), split = FALSE)
-     
-length(which(res$enrichment_result$p.adjustMANOVA<0.05))
-hm<-as.matrix(res$enrichment_result[1:40,4:8])
-rownames(hm)<-res$enrichment_result[1:40,1]
-heatmap.2(hm,trace ="none",scale = "none",dendrogram = "none",margins = c(7,25),cexCol = 0.7)
+save.image("AccesionnumberGSE74548.Rdata")
 
 ```
 
