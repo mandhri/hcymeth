@@ -446,6 +446,7 @@ dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
+ann450k[which(rownames(ann450k )%in% confects$table[1:10,6]),c(1:3,24)]  %>% kbl() %>% kable_paper("hover", full_width = F)
 colCols <- as.numeric(as.factor(groups))
 
 make_volcano(dma1a,name = "placebo_vs_supplement_follow-up(sex,age)",mx=Mval_flt)
@@ -483,7 +484,7 @@ dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-
+ann450k[which(rownames(ann450k )%in% confects$table[1:10,6]),c(1:3,24)]  %>% kbl() %>% kable_paper("hover", full_width = F)
 make_volcano(dma2a,name = "placebo_vs_supplement_baseline(sex,age)",mx=Mval_flt)
 rownames(dma2a)<-dma2a[,1]
 make_beeswarms(dm=dma2a ,name="placebo_vs_supplement_baseline(sex,age)" , mx=beta_flt , groups=groups , n= 15)
@@ -530,7 +531,7 @@ fit.reduced <- lmFit(mxs,design)
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-
+ann450k[which(rownames(ann450k )%in% confects$table[1:10,6]),c(1:3,24)]  %>% kbl() %>% kable_paper("hover", full_width = F)
 make_volcano(dma3a,name = "hcy_levels(sex,age)",mx=Mval_flt)
 rownames(dma3a)<-dma3a[,1]
 make_beeswarms(dm=dma3a ,name="hcy_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
@@ -573,7 +574,7 @@ design <- model.matrix(~ age+ sex + folate_levels)
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-
+ann450k[which(rownames(ann450k )%in% confects$table[1:10,6]),c(1:3,24)]  %>% kbl() %>% kable_paper("hover", full_width = F)
 make_volcano(dma4a,name = "folate_levels(sex,age)",mx=Mval_flt)
 rownames(dma4a)<-dma4a[,1]
 make_beeswarms(dm=dma4a ,name="folate_levels(sex,age)" , mx=beta_flt , groups=groups , n= 15)
@@ -614,7 +615,7 @@ design <- model.matrix(~ age+ sex + vitb12_levels)
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-
+ann450k[which(rownames(ann450k )%in% confects$table[1:10,6]),c(1:3,24)]  %>% kbl() %>% kable_paper("hover", full_width = F)
 make_volcano(dma5a,name = "vitmin_b12_levels(sex,age)",mx=Mval_flt)
 rownames(dma5a)<-dma5a[,1]
 make_beeswarms(dm=dma5a ,name="vitmin_b12_levels" , mx=beta_flt , groups=groups , n= 15)
