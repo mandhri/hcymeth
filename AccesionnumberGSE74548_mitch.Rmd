@@ -13,6 +13,8 @@ theme: cosmo
 
 ```{r,packages}
 
+knitr::opts_chunk$set(dev = "png")
+
 suppressPackageStartupMessages({
     library("missMethyl")
     library("GEOquery")

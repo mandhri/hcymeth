@@ -51,6 +51,8 @@ differential analysis, etc, and provide information about the array probe annota
 
 ```{r,packages}
 
+knitr::opts_chunk$set(dev = "png")
+
 suppressPackageStartupMessages({
     library("missMethyl")
     library("GEOquery")
@@ -71,6 +73,7 @@ suppressPackageStartupMessages({
     library("gplots")
     library("reshape2")
     library("beeswarm")
+    library("RCircos")
   })
 # Annotation
 ann450k <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
@@ -338,7 +341,6 @@ table(age_groups)
 
 ```{r,mds3,fig.width = 8 ,fig.height = 8,fig.cap="Figure 3. MDS plot coloured by age"}
 
-head(targets)
 targets$age <- factor(age_groups)
 sample_group <-factor(age_groups)
 colour_palette=brewer.pal(n = length(levels(sample_group)), name = "Paired")
