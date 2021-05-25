@@ -95,7 +95,7 @@ run_mitch_1d <- function(dma,name) {
     type = c("output", "message"), split = FALSE)
   return(res$enrichment_result)
 
-  nsig=nrow(subset(placebo_vs_supplement_followup_sex_age_mitch,p.adjustANOVA<0.05))
+  nsig=nrow(subset(res$enrichment_result,p.adjustANOVA<0.05))
 
   if (nsig>2) {
     mitch_report(res=res , outfile=paste(name,".html",sep="") , overwrite = TRUE)
@@ -186,8 +186,7 @@ unlink("multi_mitch.pdf")
         , file = "/dev/null", append = FALSE,
         type = c("output", "message"), split = FALSE)
 
-
-
+mitch_report(res=res , outfile="multi_mitch.html",overwrite=TRUE)
      
 length(which(res$enrichment_result$p.adjustMANOVA<0.05))
 hm<-as.matrix(res$enrichment_result[1:40,4:8])
