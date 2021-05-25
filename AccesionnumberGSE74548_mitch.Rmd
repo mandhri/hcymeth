@@ -80,6 +80,29 @@ make_heatmap2_c <- function(confects,name,mx,n, groups) {
   ColSideColors=colCols ,  col=my_palette, main=name)  
 }
 
+
+run_mitch_1d <- function(dma,name) {
+  library("mitch")
+  rank <- run_mitch_rank(dma)
+  capture.output(
+    res <- mitch_calc(x = rank,genesets = genesets, priority = "significance",resrows=20)
+    , file = "/dev/null", append = FALSE,
+    type = c("output", "message"), split = FALSE)
+ 
+  capture.output(
+    mitch_plots(res,outfile=paste(name,".pdf",sep=""))
+    , file = "/dev/null", append = FALSE,
+    type = c("output", "message"), split = FALSE)
+  return(res$enrichment_result)
+
+  nsig=nrow(subset(placebo_vs_supplement_followup_sex_age_mitch,p.adjustANOVA<0.05))
+
+  if (nsig>2) {
+    mitch_report(res=res , outfile=paste(name,".html",sep="") , overwrite = TRUE)
+  }
+}
+
+
 ```
 
 ## Data import
@@ -162,6 +185,9 @@ unlink("multi_mitch.pdf")
         mitch_plots(res,outfile="multi_mitch.pdf")
         , file = "/dev/null", append = FALSE,
         type = c("output", "message"), split = FALSE)
+
+
+
      
 length(which(res$enrichment_result$p.adjustMANOVA<0.05))
 hm<-as.matrix(res$enrichment_result[1:40,4:8])
