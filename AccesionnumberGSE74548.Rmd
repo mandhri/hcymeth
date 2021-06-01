@@ -406,6 +406,42 @@ plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosom
 
 ```
 
+```{r,folate vs hcy vs age}
+folate_levels<- samplesheet$characteristics_ch1.8
+folate_levels<-strsplit(as.character(samplesheet$characteristics_ch1.8), " ")
+folate_levels<-sapply(folate_levels , "[",5)
+folate_levels<-as.numeric(folate_levels)
+folate_levels
+
+hcy<- samplesheet$characteristics_ch1.10
+hcy<-strsplit(as.character(samplesheet$characteristics_ch1.10), " ")
+hcy<-sapply(hcy, "[",5)
+hcy<- as.numeric(hcy)
+samplesheet<-samplesheet[which(!is.na(hcy)),]
+hcy<-hcy[which(!is.na(hcy))]
+
+age<- samplesheet$characteristics_ch1.5
+age<-strsplit(as.character(samplesheet$characteristics_ch1.5), " ")
+age<-sapply(age , "[",4)
+age<-as.numeric(age)
+
+plot(hcy,folate_levels)
+points(age,col="red" )
+
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
 # Differential analysis
 
 There are several differential contrasts that would be of interest to us in this study:
