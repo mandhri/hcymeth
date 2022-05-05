@@ -51,30 +51,31 @@ differential analysis, etc, and provide information about the array probe annota
 
 ```{r,packages}
 
+Sys.setenv("VROOM_CONNECTION_SIZE" = 524288 * 2)
+
 knitr::opts_chunk$set(dev = "png")
 
 suppressPackageStartupMessages({
-    library("missMethyl")
-    library("GEOquery")
-    library("limma")
-    library("topconfects")
-    library("minfi")
-    library("IlluminaHumanMethylation450kmanifest")
-    library("IlluminaHumanMethylation450kanno.ilmn12.hg19")
-    library("DMRcate")
-    library("mitch")
-
-    library("kableExtra")
-    library("forestplot")
-    library("RColorBrewer")
-    library("plyr")
-    library("R.utils")
-    library("eulerr")
-    library("gplots")
-    library("reshape2")
-    library("beeswarm")
-    library("RCircos")
-  })
+  library("missMethyl")
+  library("GEOquery")
+  library("limma")
+  library("topconfects")
+  library("minfi")
+  library("IlluminaHumanMethylation450kmanifest")
+  library("IlluminaHumanMethylation450kanno.ilmn12.hg19")
+  library("DMRcate")
+  library("mitch")
+  library("kableExtra")
+  library("forestplot")
+  library("RColorBrewer")
+  library("plyr")
+  library("R.utils")
+  library("eulerr")
+  library("gplots")
+  library("reshape2")
+  library("beeswarm")
+  library("RCircos")
+})
 # Annotation
 ann450k <- getAnnotation(IlluminaHumanMethylation450kanno.ilmn12.hg19)
 myann <- data.frame(ann450k[,c("UCSC_RefGene_Name","Regulatory_Feature_Group")])
@@ -150,7 +151,7 @@ if ( !dir.exists("GSE74548/IDAT") ) {
 
 baseDir <- "GSE74548"
 R.utils::gunzip("GSE74548/IDAT/GPL13534_HumanMethylation450_15017482_v.1.1.csv.gz",overwrite=TRUE, remove=FALSE)
-targets <- read.metharray.sheet(baseDir,pattern="csv")
+targets <- read.metharray.sheet(baseDir,pattern="csv$")
 
 if (! file.exists("GSE74548_series_matrix.txt.gz") ) { 
   URL="https://ftp.ncbi.nlm.nih.gov/geo/series/GSE74nnn/GSE74548/matrix/GSE74548_series_matrix.txt.gz"
@@ -232,27 +233,27 @@ beta_flt <- getBeta(mSetFlt)
 
 ```{r,sex chromosome diagnostic,fig.height=8,fig.width=8}
 
-colnames(Mval)<-sapply(strsplit(colnames(Mval),"_"),"[[",1)
-colnames(Mval_flt)<-sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
+colnames(Mval) <- sapply(strsplit(colnames(Mval),"_"),"[[",1)
+colnames(Mval_flt) <- sapply(strsplit(colnames(Mval_flt),"_"),"[[",1)
 
-cgx<-rownames(Locations[which(Locations$chr %in% "chrX"),])
-cgy<-rownames(Locations[which(Locations$chr %in% "chrY"),])
+cgx <- rownames(Locations[which(Locations$chr %in% "chrX"),])
+cgy <- rownames(Locations[which(Locations$chr %in% "chrY"),])
 
-mvx<-Mval[which(rownames(Mval) %in% cgx),]
-mvy<-Mval[which(rownames(Mval) %in% cgy),]
+mvx <- Mval[which(rownames(Mval) %in% cgx),]
+mvy <- Mval[which(rownames(Mval) %in% cgy),]
 
-targets_m<-rownames(subset(targets,`gender:ch1`=="male"))
+targets_m <- rownames(subset(targets,`gender:ch1`=="male"))
 str(targets_m)
-targets_f<-rownames(subset(targets,`gender:ch1`=="female"))
+targets_f <- rownames(subset(targets,`gender:ch1`=="female"))
 
-Mvalm<-Mval[,colnames(Mval) %in% targets_m]
-Mvalf<-Mval[,colnames(Mval) %in% targets_f]
+Mvalm <- Mval[,colnames(Mval) %in% targets_m]
+Mvalf <- Mval[,colnames(Mval) %in% targets_f]
 
-mvxm<-Mvalm[which(rownames(Mvalm) %in% cgx),]
-mvym<-Mvalm[which(rownames(Mvalm) %in% cgy),]
+mvxm <- Mvalm[which(rownames(Mvalm) %in% cgx),]
+mvym <- Mvalm[which(rownames(Mvalm) %in% cgy),]
 
-mvxf<-Mvalf[which(rownames(Mvalf) %in% cgx),]
-mvyf<-Mvalf[which(rownames(Mvalf) %in% cgy),]
+mvxf <- Mvalf[which(rownames(Mvalf) %in% cgx),]
+mvyf <- Mvalf[which(rownames(Mvalf) %in% cgy),]
 
 plot(colMeans(mvx),colMeans(mvy),col="gray")
 points(colMeans(mvxm),colMeans(mvym),col="blue")
@@ -406,41 +407,30 @@ plotMDS(mydist_flt, labels=targets$geo_accession,col=colours,main="sex chromosom
 
 ```
 
+# Analysis of covariates
+
 ```{r,folate vs hcy vs age}
-folate_levels<- samplesheet$characteristics_ch1.8
-folate_levels<-strsplit(as.character(samplesheet$characteristics_ch1.8), " ")
-folate_levels<-sapply(folate_levels , "[",5)
-folate_levels<-as.numeric(folate_levels)
+
+samplesheet <- targets
+folate_levels <- samplesheet$characteristics_ch1.8
+folate_levels <-strsplit(as.character(samplesheet$characteristics_ch1.8), " ")
+folate_levels <-sapply(folate_levels , "[",5)
+folate_levels <-as.numeric(folate_levels)
 folate_levels
 
 hcy<- samplesheet$characteristics_ch1.10
 hcy<-strsplit(as.character(samplesheet$characteristics_ch1.10), " ")
 hcy<-sapply(hcy, "[",5)
 hcy<- as.numeric(hcy)
-samplesheet<-samplesheet[which(!is.na(hcy)),]
-hcy<-hcy[which(!is.na(hcy))]
 
 age<- samplesheet$characteristics_ch1.5
 age<-strsplit(as.character(samplesheet$characteristics_ch1.5), " ")
 age<-sapply(age , "[",4)
 age<-as.numeric(age)
 
-plot(hcy,folate_levels)
-points(age,col="red" )
-
+pairs(data.frame(folate_levels, hcy, age))
 
 ```
-
-
-
-
-
-
-
-
-
-
-
 
 # Differential analysis
 
@@ -467,14 +457,17 @@ groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, foll
 mx <-Mval_flt
 name="placebo_vs_supplement_follow-up"
 design <- model.matrix(~age+ sex +groups)
-    mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=4, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma1a <- dma[order(dma$P.Value),]
-    head(dma1a, 50) %>% kbl() %>% kable_paper("hover", full_width = F) 
+mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=4, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma1a <- dma[order(dma$P.Value),]
+
+write.table(dma1a,file="dma1a.tsv")
+
+head(dma1a, 50) %>% kbl() %>% kable_paper("hover", full_width = F) 
 
 dma1a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma1a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
@@ -492,6 +485,13 @@ make_beeswarms_confects(confects = confects ,name="placebo_vs_supplement_follow-
 make_heatmap(dm=dma1a , name="placebo_vs_supplement_baseline(sex,age)" , mx=mxs ,n = 50, groups=groups)
 make_heatmap2(confects = confects , name="placebo_vs_supplement_baseline(sex,age)",mx=mxs ,n = 50, groups=groups)
 
+# gene methylation analysis
+
+genes <- unique(unlist(strsplit( dma1a$UCSC_RefGene_Name ,";")))
+
+
+
+
 ```
 
 
@@ -506,14 +506,17 @@ groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, base
 mx <-Mval_flt
 name="placebo_vs_supplement_baseline"
 design <- model.matrix(~age+ sex +groups)
-    mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=4, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma2a <- dma[order(dma$P.Value),]
-    head(dma2a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+mxs <- mx[,which(colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=4, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma2a <- dma[order(dma$P.Value),]
+
+write.table(dma2a,file="dma2a.tsv")
+
+head(dma2a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
 
 dma2a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
 dma2a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
@@ -556,14 +559,18 @@ name="hcy_levels "
 design <- model.matrix(~ age+ sex + groups)
 mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
 fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=4, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma3a <- dma[order(dma$P.Value),]
-    head(dma3a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
- dma3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
- dma3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0)) 
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=4, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma3a <- dma[order(dma$P.Value),]
+
+write.table(dma3a,file="dma3a.tsv")
+
+head(dma3a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+
+dma3a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dma3a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0)) 
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
@@ -597,16 +604,20 @@ age<-samplesheet$`age at baseline:ch1`
 age<-as.numeric(age)
 
 design <- model.matrix(~ age+ sex + folate_levels)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=4, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma4a <- dma[order(dma$P.Value),]
-    head(dma4a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-    dma4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-    dma4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=4, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma4a <- dma[order(dma$P.Value),]
+
+write.table(dma4a,file="dma4a.tsv")
+
+head(dma4a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+
+dma4a_d<-nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dma4a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
 
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
@@ -638,16 +649,20 @@ name="vitmin_b12_levels"
 
 groups<-factor(samplesheet$source_name_ch1,levels = c("Buffy coat, placebo, baseline","Buffy coat, FA/vB12, baseline"))
 design <- model.matrix(~ age+ sex + vitb12_levels)
-    mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
-    fit.reduced <- lmFit(mxs,design)
-    fit.reduced <- eBayes(fit.reduced)
-    summary(decideTests(fit.reduced))
-    dm <- topTable(fit.reduced,coef=4, number = Inf)
-    dma <- merge(myann,dm,by=0)
-    dma5a <- dma[order(dma$P.Value),]
-    head(dma5a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
-    dma5a_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
-    dma5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
+mxs <- mx[,which( colnames(mx) %in% rownames(samplesheet) )]
+fit.reduced <- lmFit(mxs,design)
+fit.reduced <- eBayes(fit.reduced)
+summary(decideTests(fit.reduced))
+dm <- topTable(fit.reduced,coef=4, number = Inf)
+dma <- merge(myann,dm,by=0)
+dma5a <- dma[order(dma$P.Value),]
+
+write.table(dma5a,file="dma5a.tsv")
+
+head(dma5a, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
+
+dma5a_d<- nrow(subset(dm,adj.P.Val<0.05,logFC<0))
+dma5a_u<-nrow(subset(dm,adj.P.Val<0.05,logFC>0))
  
 confects <- limma_confects(fit.reduced, coef=3, fdr=0.05)
 head(confects$table, 50) %>% kbl() %>% kable_paper("hover", full_width = F)
