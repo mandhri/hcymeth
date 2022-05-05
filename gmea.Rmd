@@ -1,0 +1,236 @@
+---
+title: "GSE74548: Gene Methylation Enrichment Analysis"
+author: "hcy_meth meta-analysis group"
+date: "`r Sys.Date()`"
+output:
+  html_document:
+    toc: yes
+    toc_float: true
+    code_folding: hide
+    fig_width: 7
+    fig_height: 7
+theme: cosmo
+---
+
+##  Introduction
+
+Previously, Mandhri and I analysed the B-PROOF 450K data, trying to understand
+whether vitamin supplementation caused changes in gene methylation.
+We used Limma and some basic analyses, which showed no specific probes with FDR<0.05,
+nor any DMRs.
+
+In this analysis we will use the principle of Gene Set Enrichment Analysis, applying it
+to many probes belonging to genes.
+If the probes are trending in concert, then we can make some judgement about the
+enrichment of those probes.
+The statistical test used is the Wilcox test, which can be applied to competitive 
+or self contained test types.
+
+```{r,libs}
+
+library("parallel")
+library("dplyr")
+library("kableExtra")
+library("eulerr")
+
+```
+
+
+## DM1 - post trial supplement versus placebo
+
+```{r,dma1a}
+
+dm <- read.table("dma1a.tsv")
+head(dm,50) %>%
+  kbl(caption = "Top significant genes with limma") %>%
+  kable_paper("hover", full_width = F)
+
+# histogram of t values
+hist(dm$t,breaks=seq(from=-6,to=6,by=1))
+
+# set cores to used for parallel execution
+CORES= detectCores()
+
+# make a vector of unique gene names
+gn <- unique(unlist(strsplit( dm$UCSC_RefGene_Name ,";")))
+gnl <- strsplit( dm$UCSC_RefGene_Name ,";")
+
+# run the test
+gme_res <- mclapply( 1:length(gn), function(i) {
+#gme_res <- mclapply( 1:100, function(i) {
+  g <- gn[i]
+  myrows <- which(lapply(gnl,function(x) {
+    length(which(x==g))
+  } ) > 0 )
+  tstats <- dm[myrows,"t"]
+  tstats <- tstats[order(tstats)]
+  myn <- length(tstats)
+  mymean <- mean(tstats)
+  mymedian <- median(tstats)
+  wtselfcont <- wilcox.test(tstats)
+
+  tstats_out <- dm[grep(g,gnl,invert=TRUE),"t"]
+  tstats_out <- tstats_out[order(tstats_out)]
+  wtcomp <- wilcox.test(tstats,tstats_out)
+
+  res <- c("gene"=g,"nprobes"=myn,"mean"=mymean,"median"=mymedian,
+           "p-value(selfcontained)"=wtselfcont$p.value,
+           "p-value(competitive)"=wtcomp$p.value)
+} , mc.cores=CORES)
+
+# format the results
+gme_res_df <- do.call(rbind, gme_res)
+rownames(gme_res_df) <- gme_res_df[,1]
+gme_res_df <- gme_res_df[,-1]
+tmp <- apply(gme_res_df,2,as.numeric)
+rownames(tmp) <- rownames(gme_res_df)
+gme_res_df <- as.data.frame(tmp)
+
+# results are sorted by the sum of -log10 of the p-values
+sig <- -log10(gme_res_df[,4:5])
+gme_res_df$sig <- apply(sig,1,sum)
+
+gme_res_df <- gme_res_df[order(-gme_res_df$sig),]
+
+gme_res_df$`fdr(selfcontained)` <- p.adjust(gme_res_df$`p-value(selfcontained)`)
+gme_res_df$`fdr(competitive)` <- p.adjust(gme_res_df$`p-value(competitive)`)
+
+```
+
+## Table of top results.
+
+```{r, toptable}
+
+head(gme_res_df,50) %>%
+  kbl(caption = "Top significant genes with GMEA") %>%
+  kable_paper("hover", full_width = F)
+
+```
+
+## Euler plot
+
+```{r,euler1}
+
+sc_up <- rownames(subset(gme_res_df,`fdr(selfcontained)` < 0.05 & median > 0))
+
+sc_dn <- rownames(subset(gme_res_df,`fdr(selfcontained)` < 0.05 & median < 0))
+
+com_up <- rownames(subset(gme_res_df,`fdr(competitive)` < 0.05 & median > 0))
+
+com_dn <- rownames(subset(gme_res_df,`fdr(competitive)` < 0.05 & median < 0))
+
+v1 <- list("sc up"=sc_up,"sc dn"=sc_dn,"com up"=com_up,"com dn"=com_dn)
+plot(euler(v1, shape = "ellipse"), quantities = TRUE)
+
+```
+
+## Volcano plots
+
+```{r,volcano1}
+
+par(mfrow=c(2,1))
+# volcano selfcont
+sig <- subset(gme_res_df,`fdr(selfcontained)` < 0.05)
+plot(gme_res_df$median , -log10(gme_res_df$`p-value(selfcontained)`) ,
+  xlab="effect size (mean t-stat)", ylab="-log10(p-value)",
+  pch=19, cex=0.5, col="gray",main="self contained test")
+grid()
+points(sig$median , -log10(sig$`p-value(selfcontained)`) ,
+  pch=19, cex=0.5, col="red")
+
+# volcano competitive
+sig <- subset(gme_res_df,`fdr(competitive)` < 0.05)
+plot(gme_res_df$median , -log10(gme_res_df$`p-value(competitive)`) ,
+  xlab="effect size (mean t-stat)", ylab="-log10(p-value)",
+  pch=19, cex=0.5, col="gray",main="competitive test")
+grid()
+points(sig$median , -log10(sig$`p-value(competitive)`) ,
+  pch=19, cex=0.5, col="red")
+
+```
+
+## Boxplots
+
+Boxplots smallest pvalue.
+
+```{r,box1}
+
+par(mfrow=c(1,2))
+n=50
+# self contained
+gs <- head(rownames(gme_res_df[order(gme_res_df$`p-value(selfcontained)`),]),n)
+tstats <- mclapply(gs, function(g) {
+  myrows <- which(lapply(gnl,function(x) {
+    length(which(x==g))
+  } ) > 0 )
+  dm[myrows,"t"]
+},mc.cores=CORES)
+names(tstats) <- gs
+tstats <- tstats[order(unlist(lapply(tstats,median)))]
+boxplot(tstats,horizontal=TRUE,las=1,
+  main="smallest p-val(selfcont)",cex.axis=0.6,
+  xlab="t-statistic")
+grid()
+# competitive
+gs <- head(rownames(gme_res_df[order(gme_res_df$`p-value(competitive)`),]),n)
+tstats <- mclapply(gs, function(g) {
+  myrows <- which(lapply(gnl,function(x) {
+    length(which(x==g))
+  } ) > 0 )
+  dm[myrows,"t"]
+},mc.cores=CORES)
+names(tstats) <- gs
+tstats <- tstats[order(unlist(lapply(tstats,median)))]
+boxplot(tstats,horizontal=TRUE,las=1,
+  main="smallest p-val(competitive)",cex.axis=0.6,
+  xlab="t-statistic")
+grid()
+
+```
+
+Boxplots extreme effect size.
+
+```{r,box2}
+
+par(mfrow=c(1,2))
+n=50
+# median
+gs <- head(rownames(gme_res_df[order(-abs(gme_res_df$median)),]),n)
+tstats <- mclapply(gs, function(g) {
+  myrows <- which(lapply(gnl,function(x) {
+    length(which(x==g))
+  } ) > 0 )
+  dm[myrows,"t"]
+},mc.cores=CORES)
+names(tstats) <- gs
+tstats <- tstats[order(unlist(lapply(tstats,median)))]
+boxplot(tstats,horizontal=TRUE,las=1,
+  main="biggest effect size(median)",cex.axis=0.6,
+  xlab="t-statistic")
+grid()
+# mean
+gs <- head(rownames(gme_res_df[order(-abs(gme_res_df$mean)),]),n)
+tstats <- mclapply(gs, function(g) {
+  myrows <- which(lapply(gnl,function(x) {
+    length(which(x==g))
+  } ) > 0 )
+  dm[myrows,"t"]
+},mc.cores=CORES)
+names(tstats) <- gs
+tstats <- tstats[order(unlist(lapply(tstats,mean)))]
+boxplot(tstats,horizontal=TRUE,las=1,
+  main="beggest effect size(mean)",cex.axis=0.6,
+  xlab="t-statistic")
+grid()
+
+```
+
+## Session Information
+
+For reproducibility.
+
+```{r,sessioninfo}
+
+sessionInfo()
+
+```
