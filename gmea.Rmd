@@ -164,7 +164,7 @@ grid()
 
 ## Mitch
 
-```{r,dm1_mitch_promo}
+```{r,dm1_mitch}
 
 dmscore <- data.frame( gme_res_df$median * gme_res_df$sig)
 
@@ -176,7 +176,7 @@ colnames(dmscore) <- "metric"
 #unzip("ReactomePathways.gmt.zip")
 genesets <- gmt_import("ReactomePathways.gmt")
 
-res <- mitch_calc(x=dmscore, genesets=genesets)
+res <- mitch_calc(x=dmscore, genesets=genesets, priority=effect)
 
 head(res$enrichment_result,20) %>%
   kbl(caption = "Top enriched gene sets with GMEA-Mitch") %>%
@@ -325,7 +325,7 @@ colnames(dmscore) <- "metric"
 #unzip("ReactomePathways.gmt.zip")
 genesets <- gmt_import("ReactomePathways.gmt")
 
-res <- mitch_calc(x=dmscore, genesets=genesets)
+res <- mitch_calc(x=dmscore, genesets=genesets,priority=effect)
 
 head(res$enrichment_result,20) %>%
   kbl(caption = "Top enriched gene sets with GMEA-Mitch (promoter only)") %>%
