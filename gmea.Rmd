@@ -34,9 +34,7 @@ library("kableExtra")
 library("eulerr")
 library("mitch")
 
-
 ```
-
 
 # DM1 - post trial supplement versus placebo
 
@@ -91,6 +89,10 @@ gme_res_df <- gme_res_df[order(-gme_res_df$sig),]
 
 gme_res_df$`fdr(selfcontained)` <- p.adjust(gme_res_df$`p-value(selfcontained)`)
 
+gme_res_df_wholegene <- gme_res_df
+
+write.table(gme_res_df_wholegene,file="gmea_wholegene.tsv")
+
 ```
 
 ## Table of top results.
@@ -100,8 +102,6 @@ gme_res_df$`fdr(selfcontained)` <- p.adjust(gme_res_df$`p-value(selfcontained)`)
 head(gme_res_df,50) %>%
   kbl(caption = "Top significant genes with GMEA") %>%
   kable_paper("hover", full_width = F)
-
-write.table(gme_res_df,file="dm1.tsv")
 
 ```
 
@@ -176,7 +176,7 @@ colnames(dmscore) <- "metric"
 #unzip("ReactomePathways.gmt.zip")
 genesets <- gmt_import("ReactomePathways.gmt")
 
-res <- mitch_calc(x=dmscore, genesets=genesets, priority=effect)
+res <- mitch_calc(x=dmscore, genesets=genesets, priority="effect")
 
 head(res$enrichment_result,20) %>%
   kbl(caption = "Top enriched gene sets with GMEA-Mitch") %>%
@@ -240,6 +240,10 @@ gme_res_df <- gme_res_df[order(-gme_res_df$sig),]
 
 gme_res_df$`fdr(selfcontained)` <- p.adjust(gme_res_df$`p-value(selfcontained)`)
 
+gme_res_df_promoter <- gme_res_df
+
+write.table(gme_res_df_promoter ,file="gmea_promo.tsv")
+
 ```
 
 ## Table of top results.
@@ -249,8 +253,6 @@ gme_res_df$`fdr(selfcontained)` <- p.adjust(gme_res_df$`p-value(selfcontained)`)
 head(gme_res_df,50) %>%
   kbl(caption = "Top significant genes with GMEA") %>%
   kable_paper("hover", full_width = F)
-
-write.table(gme_res_df,file="dm1_promo.tsv")
 
 ```
 
@@ -325,13 +327,43 @@ colnames(dmscore) <- "metric"
 #unzip("ReactomePathways.gmt.zip")
 genesets <- gmt_import("ReactomePathways.gmt")
 
-res <- mitch_calc(x=dmscore, genesets=genesets,priority=effect)
+res <- mitch_calc(x=dmscore, genesets=genesets,priority="effect")
 
 head(res$enrichment_result,20) %>%
   kbl(caption = "Top enriched gene sets with GMEA-Mitch (promoter only)") %>%
   kable_paper("hover", full_width = F)
 
 mitch_report(res,outfile="dma1a_mitch_promo.html",overwrite=TRUE)
+
+```
+
+## Multi-mitch
+
+```{r,dm1_mitch_promoter}
+
+dmscore_wholegene <- data.frame( gme_res_df_wholegene$median * gme_res_df_wholegene$sig )
+rownames(dmscore_wholegene) <- rownames(gme_res_df_wholegene)
+colnames(dmscore_wholegene) <- "wholegene"
+
+dmscore_promoter <- data.frame( gme_res_df_promoter$median * gme_res_df_promoter$sig )
+rownames(dmscore_promoter) <- rownames(gme_res_df_promoter)
+colnames(dmscore_promoter) <- "promoter"
+
+mm <- merge(dmscore_wholegene,dmscore_promoter,by=0)
+rownames(mm) <- mm[,1]
+mm[,1] = NULL
+
+#download.file("https://reactome.org/download/current/ReactomePathways.gmt.zip", destfile="ReactomePathw>
+#unzip("ReactomePathways.gmt.zip")
+genesets <- gmt_import("ReactomePathways.gmt")
+
+mmres <- mitch_calc(x=mm, genesets=genesets,priority="effect")
+
+head(mmres$enrichment_result,20) %>%
+  kbl(caption = "Top enriched gene sets with GMEA-Mitch (wholegene and promoter)") %>%
+  kable_paper("hover", full_width = F)
+
+mitch_report(mmres,outfile="mitch_multi.html",overwrite=TRUE)
 
 ```
 
